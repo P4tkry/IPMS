@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String       @id @default(cuid())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  email           String       @unique
+  emailVerified   Boolean      @default(false)
+  name            String
+  bio             String?
+  image           String?
+  permissions     Permission[]
+  leadingProjects Project[]    @relation("ProjectLeader")
+  projects        Project[]    @relation("ProjectMembers")
+  socialLinks     SocialLink[]
+  accounts        Account[]
+  sessions        Session[]
+  Invite          Invite[]
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  providerId            String
+  accountId             String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  value      String
+  expiresAt  DateTime
+  identifier String
+
+  @@index([identifier])
+}
+
+enum Permission {
+  CREATE_USERS // For inviting new users
+  REMOVE_USERS // For removing users
+  UPDATE_USERS // For updating user details
+  UPLOAD_PHOTOS // For uploading profile photos
+
+  CREATE_ALL_PROJECTS // For creating new projects
+  REMOVE_ALL_PROJECTS // For removing any project
+  UPDATE_ALL_PROJECTS // For updating any project
+}
+
+enum SocialPlatform {
+  GITHUB
+  LINKEDIN
+  X
+  WEBSITE
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  leaderId    String
+  description String?
+  logoUrl     String?
+  leader      User     @relation("ProjectLeader", fields: [leaderId], references: [id])
+  members     User[]   @relation("ProjectMembers")
+
+  @@index([leaderId])
+}
+
+model SocialLink {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  platform  SocialPlatform
+  url       String
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([userId])
+}
+
+model Invite {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  token       String   @unique
+  email       String
+  name        String
+  expiresAt   DateTime
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([createdById])
+}
