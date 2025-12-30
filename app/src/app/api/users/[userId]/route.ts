@@ -1,15 +1,10 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Permission } from "@prisma/client";
 
-const validPermissions = new Set([
-  "CREATE_USERS",
-  "REMOVE_USERS",
-  "UPDATE_USERS",
-  "UPLOAD_PHOTOS",
-  "CREATE_ALL_PROJECTS",
-  "REMOVE_ALL_PROJECTS",
-  "UPDATE_ALL_PROJECTS",
-]);
+const validPermissions = new Set<Permission>(Object.values(Permission));
+
+const isPermission = (value: string): value is Permission => validPermissions.has(value as Permission);
 
 export async function PUT(
   request: Request,
@@ -40,9 +35,9 @@ export async function PUT(
     return Response.json({ message: "Imie i nazwisko jest wymagane." }, { status: 400 });
   }
 
-  let permissions: string[] | undefined = undefined;
+  let permissions: Permission[] | undefined = undefined;
   if (Array.isArray(body.permissions)) {
-    const filtered = body.permissions.filter((value) => validPermissions.has(value));
+    const filtered = body.permissions.filter(isPermission);
     permissions = Array.from(new Set(filtered));
   }
 
@@ -54,7 +49,7 @@ export async function PUT(
     where: { id: userId },
     data: {
       ...(name !== undefined ? { name } : {}),
-      ...(permissions !== undefined ? { permissions } : {}),
+      ...(permissions !== undefined ? { permissions: { set: permissions } } : {}),
     },
     select: {
       id: true,

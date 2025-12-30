@@ -13,6 +13,7 @@ const allPermissions: PermissionOption[] = [
   { value: "CREATE_USERS", label: "Create users" },
   { value: "REMOVE_USERS", label: "Remove users" },
   { value: "UPDATE_USERS", label: "Update users" },
+  { value: "UPLOAD_PHOTOS", label: "Upload photos" },
   { value: "CREATE_ALL_PROJECTS", label: "Create projects" },
   { value: "REMOVE_ALL_PROJECTS", label: "Remove projects" },
   { value: "UPDATE_ALL_PROJECTS", label: "Update projects" },
@@ -149,4 +150,64 @@ test("update/remove permissions show editor dropdown and limited chips", async (
   await expect(page.getByPlaceholder("Szukaj uprawnien...")).toBeVisible();
   await page.getByPlaceholder("Szukaj uprawnien...").fill("Remove");
   await expect(page.getByText("Remove users")).toBeVisible();
+});
+
+
+test("editing a user sends updated permissions", async ({ page }) => {
+  await mockSession(page);
+  await mockSettings(page, ["UPDATE_USERS"]);
+  await mockPermissions(page);
+  await mockUsers(page, [
+    {
+      id: "u-1",
+      name: "Admin User",
+      email: "admin@example.com",
+      permissions: ["UPDATE_USERS"],
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "u-2",
+      name: "Dev User",
+      email: "dev@example.com",
+      permissions: ["UPDATE_USERS"],
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+
+  let received: { name?: string; permissions?: string[] } | null = null;
+
+  await page.route("**/api/users/u-2", async (route) => {
+    if (route.request().method() !== "PUT") {
+      await route.fallback();
+      return;
+    }
+
+    received = route.request().postDataJSON() as { name?: string; permissions?: string[] };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: {
+          id: "u-2",
+          name: "Dev User",
+          email: "dev@example.com",
+          permissions: received?.permissions ?? [],
+          createdAt: new Date().toISOString(),
+        },
+      }),
+    });
+  });
+
+  await page.goto("/settings/users");
+
+  const editButtons = page.getByRole("button", { name: "Zmien" });
+  await editButtons.nth(1).click();
+
+  await page.getByRole("button", { name: /wybierz uprawnienia|wybrane/i }).click();
+  await page.getByRole("button", { name: "Upload photos" }).click();
+
+  await page.getByRole("button", { name: "Zapisz" }).click();
+
+  expect(received).not.toBeNull();
+  expect(received?.permissions).toContain("UPLOAD_PHOTOS");
 });

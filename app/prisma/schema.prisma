@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  output   = "../../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -22,10 +22,14 @@ model User {
   name            String
   bio             String?
   image           String?
+  hobbies         String[]     @default([])
+  strengths       String[]     @default([])
+  weaknesses      String[]     @default([])
   permissions     Permission[]
   leadingProjects Project[]    @relation("ProjectLeader")
   projects        Project[]    @relation("ProjectMembers")
   socialLinks     SocialLink[]
+  career          CareerEntry[]
   accounts        Account[]
   sessions        Session[]
   Invite          Invite[]
@@ -133,4 +137,18 @@ model Invite {
 
   @@index([email])
   @@index([createdById])
+}
+
+model CareerEntry {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  startDate   DateTime
+  position    String
+  companyName String
+  duration    String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

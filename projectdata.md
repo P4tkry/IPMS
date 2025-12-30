@@ -4,12 +4,13 @@ This document summarizes the main data models and their intent.
 
 ## User
 - Purpose: Primary account entity for authentication and profile data.
-- Key fields: `email`, `name`, `bio`, `image`, `permissions`.
+- Key fields: `email`, `name`, `bio`, `image`, `permissions`, `hobbies`, `strengths`, `weaknesses`.
 - Relations:
   - `accounts`, `sessions` (auth)
   - `leadingProjects` (leader of projects)
   - `projects` (member of projects)
   - `socialLinks` (external profiles)
+  - `career` (employment history)
   - `Invite` (created invitations)
 
 ## Account
@@ -42,6 +43,11 @@ This document summarizes the main data models and their intent.
 - Purpose: Tokenized invitation for registration.
 - Key fields: `token`, `email`, `name`, `expiresAt`, `createdById`.
 - Relation: Belongs to a `User` (`createdBy`).
+
+## CareerEntry
+- Purpose: Employment history entries for a user profile.
+- Key fields: `startDate`, `position`, `companyName`, `duration`.
+- Relation: Belongs to a `User`.
 
 ## Enums
 - `Permission`: user capabilities (`CREATE_USERS`, `REMOVE_USERS`, `UPDATE_USERS`, `CREATE_ALL_PROJECTS`, `REMOVE_ALL_PROJECTS`, `UPDATE_ALL_PROJECTS`).

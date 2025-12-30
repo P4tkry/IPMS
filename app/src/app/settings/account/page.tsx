@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, FieldArray, Form, Formik, FormikProps } from "formik";
 import * as Yup from "yup";
@@ -14,8 +14,98 @@ import { Globe, Github, Linkedin, Plus, Twitter, X } from "lucide-react";
 type SettingsForm = {
   name: string;
   bio: string;
+  hobbies: string[];
+  strengths: string[];
+  weaknesses: string[];
+  career: Array<{
+    startDate: string;
+    position: string;
+    companyName: string;
+    duration: string;
+  }>;
   socialLinks: Array<{ platform: string; url: string }>;
 };
+
+type TagInputProps = {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string[];
+  error?: string;
+  onChange: (next: string[]) => void;
+  onBlur?: () => void;
+};
+
+function TagInput({ id, label, placeholder, value, error, onChange, onBlur }: TagInputProps) {
+  const [inputValue, setInputValue] = useState("");
+
+  const addTag = (raw: string) => {
+    const tag = raw.trim();
+    if (!tag || value.includes(tag)) return;
+    onChange([...value, tag]);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      addTag(inputValue);
+      setInputValue("");
+      return;
+    }
+    if (event.key === "Backspace" && !inputValue && value.length > 0) {
+      onChange(value.slice(0, -1));
+    }
+  };
+
+  const handleBlur = () => {
+    if (inputValue.trim()) {
+      addTag(inputValue);
+      setInputValue("");
+    }
+    onBlur?.();
+  };
+
+  const removeTag = (tag: string) => {
+    onChange(value.filter((item) => item !== tag));
+  };
+
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7b68]" htmlFor={id}>
+        {label}
+      </label>
+      <div className="mt-2 rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 shadow-sm transition focus-within:border-[#2a241f] focus-within:ring-2 focus-within:ring-[#2a241f]/10">
+        <div className="flex flex-wrap items-center gap-2">
+          {value.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-2 rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]"
+            >
+              {tag}
+              <button
+                type="button"
+                className="text-[10px] text-[#8d7b68] transition hover:text-[#2a241f]"
+                onClick={() => removeTag(tag)}
+              >
+                x
+              </button>
+            </span>
+          ))}
+          <input
+            id={id}
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            className="min-w-[160px] flex-1 border-0 bg-transparent text-sm text-[#2a241f] outline-none placeholder:text-[#b3a79b]"
+          />
+        </div>
+      </div>
+      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+    </div>
+  );
+}
 
 export default function SettingsAccountPage() {
   const router = useRouter();
@@ -77,6 +167,10 @@ export default function SettingsAccountPage() {
   const initialValues: SettingsForm = {
     name: "",
     bio: "",
+    hobbies: [],
+    strengths: [],
+    weaknesses: [],
+    career: [],
     socialLinks: [],
   };
   const validationSchema = Yup.object({
@@ -84,6 +178,25 @@ export default function SettingsAccountPage() {
       .max(120, "Imie i nazwisko moze miec max 120 znakow.")
       .required("Imie i nazwisko jest wymagane."),
     bio: Yup.string().max(280, "Opis moze miec max 280 znakow."),
+    hobbies: Yup.array()
+      .of(Yup.string().trim().min(1, "Hobby nie moze byc puste.").max(40, "Hobby max 40 znakow."))
+      .max(20, "Max 20 hobby."),
+    strengths: Yup.array()
+      .of(Yup.string().trim().min(1, "Mocna strona nie moze byc pusta.").max(40, "Mocna strona max 40 znakow."))
+      .max(20, "Max 20 mocnych stron."),
+    weaknesses: Yup.array()
+      .of(Yup.string().trim().min(1, "Slaba strona nie moze byc pusta.").max(40, "Slaba strona max 40 znakow."))
+      .max(20, "Max 20 slabosci."),
+    career: Yup.array().of(
+      Yup.object({
+        startDate: Yup.string()
+          .matches(/^\d{4}-\d{2}-\d{2}$/, "Podaj date w formacie YYYY-MM-DD.")
+          .required("Data rozpoczecia jest wymagana."),
+        position: Yup.string().trim().required("Stanowisko jest wymagane."),
+        companyName: Yup.string().trim().required("Nazwa firmy jest wymagana."),
+        duration: Yup.string().trim().required("Czas pracy jest wymagany."),
+      }),
+    ),
     socialLinks: Yup.array().of(
       Yup.object({
         platform: Yup.string().required("Wybierz platforme."),
@@ -113,6 +226,22 @@ export default function SettingsAccountPage() {
         formikRef.current?.setValues({
           name: payload?.user?.name || "",
           bio: payload?.user?.bio || "",
+          hobbies: payload?.user?.hobbies || [],
+          strengths: payload?.user?.strengths || [],
+          weaknesses: payload?.user?.weaknesses || [],
+          career: (payload?.user?.career || []).map(
+            (entry: {
+              startDate?: string;
+              position?: string;
+              companyName?: string;
+              duration?: string;
+            }) => ({
+              startDate: entry?.startDate ? String(entry.startDate).slice(0, 10) : "",
+              position: entry?.position || "",
+              companyName: entry?.companyName || "",
+              duration: entry?.duration || "",
+            }),
+          ),
           socialLinks: payload?.user?.socialLinks || [],
         });
         setProfileImage(payload?.user?.image || null);
@@ -224,10 +353,19 @@ export default function SettingsAccountPage() {
             setError(null);
             setSuccess(null);
             try {
+              const payloadValues = {
+                name: values.name,
+                bio: values.bio,
+                hobbies: values.hobbies,
+                strengths: values.strengths,
+                weaknesses: values.weaknesses,
+                career: values.career,
+                socialLinks: values.socialLinks,
+              };
               const response = await fetch("/api/settings", {
                 method: "PUT",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify(values),
+                body: JSON.stringify(payloadValues),
               });
               const payload = await response.json();
               if (!response.ok) {
@@ -241,7 +379,7 @@ export default function SettingsAccountPage() {
             }
           }}
         >
-          {({ values, errors, touched, isSubmitting, setFieldValue }) => (
+          {({ values, errors, touched, isSubmitting, setFieldValue, setFieldTouched }) => (
             <Form className="space-y-6">
               <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
                 <div>
@@ -278,6 +416,178 @@ export default function SettingsAccountPage() {
                     <p className="mt-1 text-xs text-red-600">{errors.bio}</p>
                   ) : null}
                 </div>
+              </section>
+
+              <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
+                    Profil osobisty
+                  </p>
+                  <p className="mt-1 text-sm text-[#6f6255]">
+                    Dodawaj tagi klawiszem Enter lub przecinkiem.
+                  </p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <TagInput
+                    id="hobbies"
+                    label="Hobby"
+                    placeholder="np. bieganie"
+                    value={values.hobbies}
+                    onChange={(next) => setFieldValue("hobbies", next)}
+                    onBlur={() => setFieldTouched("hobbies", true)}
+                    error={touched.hobbies ? (errors.hobbies as string | undefined) : undefined}
+                  />
+                  <TagInput
+                    id="strengths"
+                    label="Mocne strony"
+                    placeholder="np. analityka"
+                    value={values.strengths}
+                    onChange={(next) => setFieldValue("strengths", next)}
+                    onBlur={() => setFieldTouched("strengths", true)}
+                    error={touched.strengths ? (errors.strengths as string | undefined) : undefined}
+                  />
+                  <TagInput
+                    id="weaknesses"
+                    label="Slabe strony"
+                    placeholder="np. komunikacja"
+                    value={values.weaknesses}
+                    onChange={(next) => setFieldValue("weaknesses", next)}
+                    onBlur={() => setFieldTouched("weaknesses", true)}
+                    error={touched.weaknesses ? (errors.weaknesses as string | undefined) : undefined}
+                  />
+                </div>
+              </section>
+
+              <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
+                      Kariera
+                    </p>
+                    <p className="mt-1 text-sm text-[#6f6255]">
+                      Dodaj wpisy z historii zatrudnienia.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-[#d7c8b7] bg-white px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
+                    onClick={() =>
+                      setFieldValue("career", [
+                        ...values.career,
+                        { startDate: "", position: "", companyName: "", duration: "" },
+                      ])
+                    }
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Dodaj wpis
+                  </button>
+                </div>
+                <FieldArray
+                  name="career"
+                  render={(arrayHelpers) => (
+                    <div className="space-y-3">
+                      {values.career.length === 0 ? (
+                        <p className="text-xs text-[#8d7b68]">Brak wpisow kariery.</p>
+                      ) : null}
+                      {values.career.map((entry, index) => {
+                        const careerErrors =
+                          (errors.career?.[index] as
+                            | {
+                                startDate?: string;
+                                position?: string;
+                                companyName?: string;
+                                duration?: string;
+                              }
+                            | undefined) || undefined;
+                        const careerTouched =
+                          (touched.career?.[index] as
+                            | {
+                                startDate?: boolean;
+                                position?: boolean;
+                                companyName?: boolean;
+                                duration?: boolean;
+                              }
+                            | undefined) || undefined;
+                        return (
+                          <div
+                            key={`career-${index}`}
+                            className="grid gap-4 rounded-2xl border border-[#eadfd3] bg-white p-4 shadow-[0_18px_40px_-35px_rgba(60,40,20,0.5)] md:grid-cols-[160px_1fr_1fr_160px_auto]"
+                          >
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
+                                Start
+                              </label>
+                              <Field
+                                type="date"
+                                name={`career.${index}.startDate`}
+                                className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
+                              />
+                              {careerTouched?.startDate && careerErrors?.startDate ? (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {careerErrors.startDate}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
+                                Stanowisko
+                              </label>
+                              <Field
+                                name={`career.${index}.position`}
+                                className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
+                                placeholder="np. Senior Frontend"
+                              />
+                              {careerTouched?.position && careerErrors?.position ? (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {careerErrors.position}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
+                                Firma
+                              </label>
+                              <Field
+                                name={`career.${index}.companyName`}
+                                className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
+                                placeholder="np. Acme"
+                              />
+                              {careerTouched?.companyName && careerErrors?.companyName ? (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {careerErrors.companyName}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
+                                Czas pracy
+                              </label>
+                              <Field
+                                name={`career.${index}.duration`}
+                                className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
+                                placeholder="np. 2 lata"
+                              />
+                              {careerTouched?.duration && careerErrors?.duration ? (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {careerErrors.duration}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div className="flex items-end justify-end">
+                              <button
+                                type="button"
+                                className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
+                                onClick={() => arrayHelpers.remove(index)}
+                              >
+                                Usun
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                />
               </section>
 
               <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">

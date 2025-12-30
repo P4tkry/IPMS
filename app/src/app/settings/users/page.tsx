@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useClickAway } from "react-use";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,14 @@ type PermissionSelectProps = {
 function PermissionSelect({ options, selected, onChange, disabled }: PermissionSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const handleClickAway = useCallback(() => {
+    if (open) {
+      setOpen(false);
+    }
+  }, [open]);
+
+  useClickAway(containerRef, handleClickAway);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -53,7 +62,7 @@ function PermissionSelect({ options, selected, onChange, disabled }: PermissionS
   };
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         disabled={disabled}
@@ -491,12 +500,79 @@ export default function SettingsUsersPage() {
                 );
                 const visiblePermissions = permissionLabelsList.slice(0, 2);
                 const hiddenCount = Math.max(permissionLabelsList.length - visiblePermissions.length, 0);
+                if (isEditing) {
+                  return (
+                    <div
+                      key={user.id}
+                      className="rounded-2xl border border-[#eadfd3] bg-white px-4 py-5 text-sm text-[#5c4f45] shadow-sm"
+                    >
+                      <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1.2fr)] md:items-start">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-11 w-11 border border-[#eadfd3] bg-[#f8f4ef]">
+                              {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
+                              <AvatarFallback className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
+                                {getInitials(user.name || "", user.email)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <input
+                                value={editName}
+                                onChange={(event) => setEditName(event.target.value)}
+                                className="w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="min-w-0 break-all text-center text-sm text-[#6f6255] md:flex md:items-center md:justify-center">
+                          {user.email}
+                        </div>
+                        <div className="flex flex-col items-end justify-start gap-2">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
+                              onClick={cancelEdit}
+                            >
+                              Anuluj
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-full border border-[#2a241f] bg-[#2a241f] px-3 py-1 text-xs text-[#f6efe8] shadow-sm transition hover:bg-[#3a332c]"
+                              onClick={saveEdit}
+                            >
+                              Zapisz
+                            </button>
+                          </div>
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-[#8d7b68]">
+                            {new Date(user.createdAt).toLocaleDateString("pl-PL")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 border-t border-[#f0e6db] pt-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8d7b68]">
+                          Uprawnienia
+                        </p>
+                        <div className="mt-3">
+                          <PermissionSelect
+                            options={permissionOptions}
+                            selected={editPermissions}
+                            onChange={setEditPermissions}
+                            disabled={!canUpdateUsers}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={user.id}
-                    className="grid gap-3 rounded-2xl border border-[#eadfd3] bg-white px-4 py-4 text-sm text-[#5c4f45] shadow-sm md:grid-cols-[1.6fr_1.6fr_2.3fr_1fr]"
+                    className={`grid gap-4 rounded-2xl border border-[#eadfd3] bg-white px-4 py-5 text-sm text-[#5c4f45] shadow-sm ${
+                      "md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.6fr)_minmax(0,2.3fr)_minmax(0,1fr)] md:items-center"
+                    }`}
                   >
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-11 w-11 border border-[#eadfd3] bg-[#f8f4ef]">
                           {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
@@ -504,105 +580,71 @@ export default function SettingsUsersPage() {
                             {getInitials(user.name || "", user.email)}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1">
-                          {isEditing ? (
-                            <input
-                              value={editName}
-                              onChange={(event) => setEditName(event.target.value)}
-                              className="w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                            />
-                          ) : (
-                            <div>
-                              <p className="font-semibold text-[#2a241f]">{user.name || "-"}</p>
-                              {isSelf ? (
-                                <span className="mt-2 inline-flex rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6f6255]">
-                                  To Ty
-                                </span>
-                              ) : null}
-                            </div>
-                          )}
+                        <div className="min-w-0 flex-1">
+                          <div>
+                            <p className="font-semibold text-[#2a241f]">{user.name || "-"}</p>
+                            {isSelf ? (
+                              <span className="mt-2 inline-flex rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6f6255]">
+                                To Ty
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="break-all text-sm text-[#6f6255]">{user.email}</div>
-                    <div className="space-y-2">
-                      {isEditing ? (
-                        <PermissionSelect
-                          options={permissionOptions}
-                          selected={editPermissions}
-                          onChange={setEditPermissions}
-                          disabled={!canUpdateUsers}
-                        />
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {permissionLabelsList.length === 0 ? (
-                            <span className="text-xs text-[#8d7b68]">Brak</span>
-                          ) : (
-                            <>
-                              {visiblePermissions.map((label) => (
-                                <span
-                                  key={label}
-                                  className="rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]"
-                                >
-                                  {label}
-                                </span>
-                              ))}
-                              {hiddenCount > 0 ? (
-                                <span className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#8d7b68]">
-                                  +{hiddenCount}
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </div>
-                      )}
+                    <div className="min-w-0 break-all text-center text-sm text-[#6f6255] md:flex md:items-center md:justify-center">
+                      {user.email}
+                    </div>
+                    <div className="min-w-0 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {permissionLabelsList.length === 0 ? (
+                          <span className="text-xs text-[#8d7b68]">Brak</span>
+                        ) : (
+                          <>
+                            {visiblePermissions.map((label) => (
+                              <span
+                                key={label}
+                                className="rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                            {hiddenCount > 0 ? (
+                              <span className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#8d7b68]">
+                                +{hiddenCount}
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-col items-end justify-start gap-2">
-                      {isEditing ? (
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <button
-                            type="button"
-                            className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
-                            onClick={cancelEdit}
-                          >
-                            Anuluj
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-full border border-[#2a241f] bg-[#2a241f] px-3 py-1 text-xs text-[#f6efe8] shadow-sm transition hover:bg-[#3a332c]"
-                            onClick={saveEdit}
-                          >
-                            Zapisz
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <button
-                            type="button"
-                            className={`rounded-full border px-3 py-1 text-xs shadow-sm transition hover:shadow-md ${
-                              canUpdateUsers
-                                ? "border-[#d7c8b7] text-[#2a241f] hover:border-[#2a241f]"
-                                : "border-[#eadfd3] text-[#b3a79b]"
-                            }`}
-                            onClick={() => canUpdateUsers && startEdit(user)}
-                            disabled={!canUpdateUsers}
-                          >
-                            Zmien
-                          </button>
-                          <button
-                            type="button"
-                            className={`rounded-full border px-3 py-1 text-xs shadow-sm transition hover:shadow-md ${
-                              canRemoveUsers && !isSelf
-                                ? "border-red-200 text-red-700 hover:border-red-400"
-                                : "border-[#eadfd3] text-[#b3a79b]"
-                            }`}
-                            onClick={() => requestDelete(user)}
-                            disabled={!canRemoveUsers || isSelf}
-                          >
-                            Usun
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          className={`rounded-full border px-3 py-1 text-xs shadow-sm transition hover:shadow-md ${
+                            canUpdateUsers
+                              ? "border-[#d7c8b7] text-[#2a241f] hover:border-[#2a241f]"
+                              : "border-[#eadfd3] text-[#b3a79b]"
+                          }`}
+                          onClick={() => canUpdateUsers && startEdit(user)}
+                          disabled={!canUpdateUsers}
+                        >
+                          Zmien
+                        </button>
+                        <button
+                          type="button"
+                          className={`rounded-full border px-3 py-1 text-xs shadow-sm transition hover:shadow-md ${
+                            canRemoveUsers && !isSelf
+                              ? "border-red-200 text-red-700 hover:border-red-400"
+                              : "border-[#eadfd3] text-[#b3a79b]"
+                          }`}
+                          onClick={() => requestDelete(user)}
+                          disabled={!canRemoveUsers || isSelf}
+                        >
+                          Usun
+                        </button>
+                      </div>
                       <span className="text-[10px] uppercase tracking-[0.2em] text-[#8d7b68]">
                         {new Date(user.createdAt).toLocaleDateString("pl-PL")}
                       </span>
