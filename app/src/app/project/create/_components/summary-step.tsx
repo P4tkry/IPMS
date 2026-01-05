@@ -168,6 +168,7 @@ export default function SummaryStep({
   const fallback = t("common.noData");
   const items = summaryItems(values, fallback, t);
   const [localDownloading, setLocalDownloading] = useState(false);
+  const downloading = onDownloadCard ? !!isDownloading : localDownloading;
 
   const handleDownloadLocal = async () => {
     if (localDownloading) return;
@@ -305,10 +306,16 @@ export default function SummaryStep({
             type="button"
             variant="outline"
             className="h-12 rounded-2xl border border-[#d7c8b7] bg-white px-6 text-sm text-[#2a241f]"
-            onClick={onDownloadCard}
-            disabled={!onDownloadCard || isDownloading}
+            onClick={() => {
+              if (onDownloadCard) {
+                onDownloadCard();
+              } else {
+                handleDownloadLocal();
+              }
+            }}
+            disabled={downloading}
           >
-            {isDownloading
+            {downloading
               ? t("project.create.success.downloadingCard")
               : t("project.create.success.downloadCard")}
           </Button>
