@@ -158,6 +158,8 @@ export default function SummaryStep({
   onBack,
   onConfirm,
   isConfirmLoading,
+  onDownloadCard,
+  isDownloading,
 }: SummaryStepProps) {
   const { t } = useI18n();
   const fallback = t("common.noData");
