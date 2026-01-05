@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "pnpm --filter app dev",
+    "dev:log": "pnpm --filter app dev > app/next-dev.log 2>&1",
     "build": "pnpm -r build",
     "lint": "pnpm --filter app lint",
     "prisma:generate": "pnpm --filter app exec prisma generate",

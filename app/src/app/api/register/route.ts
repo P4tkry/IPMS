@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Permission } from "@prisma/client";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { token?: string; password?: string };
@@ -38,6 +39,20 @@ export async function POST(request: Request) {
         password,
       },
     });
+
+    const createdUser = await prisma.user.findUnique({
+      where: { email: invite.email },
+      select: { permissions: true },
+    });
+
+    if (createdUser && !createdUser.permissions.includes(Permission.UPLOAD_PHOTOS)) {
+      await prisma.user.update({
+        where: { email: invite.email },
+        data: {
+          permissions: { set: [...createdUser.permissions, Permission.UPLOAD_PHOTOS] },
+        },
+      });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Nie udalo sie utworzyc konta.";
     return Response.json({ message }, { status: 400 });

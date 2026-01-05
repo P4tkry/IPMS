@@ -1,0 +1,974 @@
+{
+  "nav": {
+    "home": "Strona główna",
+    "dashboard": "Dashboard",
+    "settings": "Ustawienia",
+    "logout": "Wyloguj",
+    "login": "Logowanie"
+  },
+  "common": {
+    "yes": "Tak",
+    "no": "Nie",
+    "noData": "Brak danych",
+    "loading": "Ładowanie...",
+    "remove": "Usuń",
+    "saveChanges": "Zapisz zmiany",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "cancel": "Anuluj",
+    "open": "Otwórz",
+    "close": "Zamknij",
+    "edit": "Zmień",
+    "delete": "Usuń",
+    "add": "Dodaj"
+  },
+  "dashboard": {
+    "badge": "Dashboard",
+    "title": "Witaj w IPMS",
+    "subtitle": "To Twój panel. Poniżej znajdziesz dane zalogowanego użytkownika.",
+    "userLabel": "Użytkownik",
+    "id": "Id",
+    "name": "Imię",
+    "email": "Email",
+    "emailVerified": "Zweryfikowany email"
+  },
+  "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Hasło",
+      "fullName": "Imię i nazwisko",
+      "confirmPassword": "Potwierdź hasło"
+    },
+    "validation": {
+      "emailInvalid": "Podaj poprawny email.",
+      "emailRequired": "Email jest wymagany.",
+      "passwordRequired": "Hasło jest wymagane.",
+      "passwordMin": "Hasło musi mieć min. 8 znaków.",
+      "passwordsMismatch": "Hasła muszą być takie same.",
+      "confirmPasswordRequired": "Potwierdź hasło.",
+      "nameRequired": "Imię i nazwisko jest wymagane."
+    },
+    "login": {
+      "badge": "Secure workspace",
+      "title": "Zaloguj się do IPMS",
+      "subtitle": "Użyj danych konta, aby uzyskać dostęp do panelu.",
+      "notice": "Logowanie jest dostępne tylko dla posiadaczy kont. Jeśli nie masz dostępu, skontaktuj się z administratorem.",
+      "submit": "Zaloguj się",
+      "submitting": "Logowanie...",
+      "help": "Problem z logowaniem? Skontaktuj się z administratorem systemu.",
+      "errorGeneric": "Nie udało się zalogować."
+    },
+    "register": {
+      "badge": "Registration",
+      "title": "Utwórz konto w IPMS",
+      "subtitle": "Dokończ rejestrację na podstawie zaproszenia.",
+      "loading": "Ładowanie zaproszenia...",
+      "submit": "Utwórz konto",
+      "submitting": "Tworzenie konta...",
+      "missingToken": "Brak tokenu zaproszenia.",
+      "invalidInvite": "Nieprawidłowe zaproszenie.",
+      "createFailed": "Nie udało się utworzyć konta."
+    }
+  },
+  "settings": {
+    "badge": "Settings",
+    "title": "Ustawienia",
+    "subtitle": "Zarządzaj profilem i dostępem do organizacji.",
+    "workspace": "Workspace",
+    "sections": "Sekcje",
+    "accountTab": "Moje konto",
+    "usersTab": "Konta użytkowników",
+    "account": {
+      "badge": "Moje konto",
+      "title": "Profil użytkownika",
+      "subtitle": "Zaktualizuj imię i nazwisko oraz opis profilu.",
+      "photoAlt": "Zdjęcie profilowe",
+      "photoTitle": "Zdjęcie profilowe",
+      "photoHint": "PNG/JPG do 5MB. Widoczne w profilu.",
+      "photoUploading": "Przesyłanie...",
+      "photoChange": "Zmień zdjęcie",
+      "fields": {
+        "fullName": "Imię i nazwisko",
+        "bio": "Opis"
+      },
+      "profile": {
+        "title": "Profil osobisty",
+        "subtitle": "Dodawaj tagi klawiszem Enter lub przecinkiem.",
+        "hobbies": "Hobby",
+        "hobbiesPlaceholder": "np. bieganie",
+        "strengths": "Mocne strony",
+        "strengthsPlaceholder": "np. analityka",
+        "weaknesses": "Słabe strony",
+        "weaknessesPlaceholder": "np. komunikacja"
+      },
+      "career": {
+        "title": "Kariera",
+        "subtitle": "Dodaj wpisy z historii zatrudnienia.",
+        "add": "Dodaj wpis",
+        "empty": "Brak wpisów kariery.",
+        "start": "Start",
+        "position": "Stanowisko",
+        "company": "Firma",
+        "duration": "Czas pracy",
+        "positionPlaceholder": "np. Senior Frontend",
+        "companyPlaceholder": "np. Acme",
+        "durationPlaceholder": "np. 2 lata"
+      },
+      "social": {
+        "title": "Social links",
+        "subtitle": "Dodaj linki do profili. Będą widoczne w profilu.",
+        "add": "Dodaj",
+        "empty": "Brak dodanych linków.",
+        "platform": "Platforma",
+        "link": "Link",
+        "linkPlaceholder": "https://"
+      },
+      "errors": {
+        "loadFailed": "Nie udało się pobrać ustawień.",
+        "uploadFailed": "Nie udało się przesłać zdjęcia.",
+        "saveFailed": "Nie udało się zapisać zmian."
+      },
+      "success": {
+        "saved": "Zapisano zmiany."
+      },
+      "validation": {
+        "nameMax": "Imię i nazwisko może mieć maks. 120 znaków.",
+        "nameRequired": "Imię i nazwisko jest wymagane.",
+        "bioMax": "Opis może mieć maks. 280 znaków.",
+        "hobbyMin": "Hobby nie może być puste.",
+        "hobbyMax": "Hobby max 40 znaków.",
+        "hobbyLimit": "Max 20 hobby.",
+        "strengthMin": "Mocna strona nie może być pusta.",
+        "strengthMax": "Mocna strona max 40 znaków.",
+        "strengthLimit": "Max 20 mocnych stron.",
+        "weaknessMin": "Słaba strona nie może być pusta.",
+        "weaknessMax": "Słaba strona max 40 znaków.",
+        "weaknessLimit": "Max 20 słabości.",
+        "dateFormat": "Podaj datę w formacie YYYY-MM-DD.",
+        "startDateRequired": "Data rozpoczęcia jest wymagana.",
+        "positionRequired": "Stanowisko jest wymagane.",
+        "companyRequired": "Nazwa firmy jest wymagana.",
+        "durationRequired": "Czas pracy jest wymagany.",
+        "platformRequired": "Wybierz platformę.",
+        "urlInvalid": "Podaj poprawny link.",
+        "urlRequired": "Link jest wymagany."
+      }
+    },
+    "users": {
+      "badge": "All accounts",
+      "title": "Zarządzanie kontami",
+      "subtitle": "Lista wszystkich użytkowników w organizacji.",
+      "count": "kont",
+      "errors": {
+        "loadFailed": "Nie udało się pobrać ustawień.",
+        "usersFailed": "Nie udało się pobrać listy kont.",
+        "updateFailed": "Nie udało się zapisać zmian.",
+        "deleteFailed": "Nie udało się usunąć konta."
+      },
+      "invites": {
+        "label": "Zaproszenia",
+        "subtitle": "Wygeneruj link do rejestracji dla nowego użytkownika.",
+        "badge": "Create users",
+        "nameLabel": "Imię i nazwisko",
+        "emailLabel": "Email",
+        "generate": "Generuj link",
+        "generating": "Generowanie...",
+        "copy": "Kopiuj link",
+        "missing": "Uzupełnij imię i email.",
+        "generateFailed": "Nie udało się wygenerować linku.",
+        "success": "Wygenerowano link zaproszenia.",
+        "copied": "Link skopiowany.",
+        "copyFailed": "Nie udało się skopiować linku.",
+        "noAccess": "Brak uprawnień do tworzenia kont."
+      },
+      "permissions": {
+        "selected": "wybrane",
+        "placeholder": "Wybierz uprawnienia",
+        "search": "Szukaj uprawnień...",
+        "empty": "Brak wyników.",
+        "active": "Wybrane"
+      },
+      "list": {
+        "label": "Lista użytkowników",
+        "search": "Szukaj po nazwie lub emailu",
+        "loading": "Ładowanie listy...",
+        "empty": "Brak użytkowników do wyświetlenia.",
+        "headers": {
+          "user": "Użytkownik",
+          "email": "Email",
+          "permissions": "Uprawnienia",
+          "actions": "Akcje"
+        },
+        "permissionsLabel": "Uprawnienia",
+        "permissionsEmpty": "Brak",
+        "you": "To Ty"
+      },
+      "delete": {
+        "label": "Potwierdzenie",
+        "title": "Usuń konto użytkownika",
+        "prompt": "Czy na pewno chcesz usunąć konto",
+        "confirm": "Potwierdź usunięcie"
+      }
+    }
+  },
+  "home": {
+    "badge": "Start w Q1 2026",
+    "title": "Inteligentne oprogramowanie do zarządzania projektami",
+    "subtitle": "Połącz strategię, realizację i raportowanie w jednym miejscu. IPMS utrzymuje inicjatywy, roadmapy i zespoły w jednym rytmie, abyś mógł działać szybko bez utraty jasności.",
+    "primaryCta": "Poproś o demo",
+    "secondaryCta": "Zobacz roadmapę",
+    "highlights": {
+      "portfolio": "Zunifikowany widok portfolio",
+      "risk": "Wnioski o ryzyku wspierane AI",
+      "dashboards": "Dashboardy zarządcze w czasie rzeczywistym"
+    },
+    "signal": {
+      "label": "Sygnał na żywo",
+      "title": "Portfolio Pulse",
+      "programHealth": "Kondycja programu",
+      "programChange": "+12%",
+      "activeValue": "38",
+      "activeLabel": "Aktywne inicjatywy",
+      "deliveryValue": "92%",
+      "deliveryLabel": "Dostawy na czas",
+      "riskValue": "4,7d",
+      "riskLabel": "Średni alert ryzyka"
+    },
+    "today": {
+      "title": "Dzisiaj",
+      "summary": "6 kamieni milowych jest przed planem. 2 wymagają uwagi zarządu."
+    },
+    "sections": {
+      "plan": {
+        "label": "Plan",
+        "title": "Strategiczne dopasowanie",
+        "body": "Powiąż każdą inicjatywę z celami dzięki jasnemu właścicielowi i śledzeniu wpływu."
+      },
+      "execute": {
+        "label": "Realizacja",
+        "title": "Widoczny impet",
+        "body": "Wykrywaj blokady wcześniej dzięki live sygnałom i automatycznym podsumowaniom."
+      },
+      "report": {
+        "label": "Raport",
+        "title": "Gotowe dla zarządu",
+        "body": "Buduj narracje zarządcze dzięki dashboardom dopasowanym do interesariuszy."
+      }
+    }
+  },
+  "project": {
+    "create": {
+      "progress": {
+        "label": "Postęp"
+      },
+      "summary": {
+        "title": "Podsumowanie",
+        "subtitle": "Sprawdź",
+        "description": "Upewnij się, że dane są kompletne i poprawne przed zapisaniem.",
+        "section": "Podsumowanie projektu",
+        "confirm": "Zapisz projekt"
+      },
+      "badge": "Create project",
+      "title": "Utwórz nowy projekt",
+      "subtitle": "Wprowadź podstawowe informacje projektu.",
+      "noPermission": "Brak uprawnień do tworzenia projektów.",
+      "createDraft": "Utwórz projekt",
+      "creatingDraft": "Tworzenie...",
+      "success": {
+        "label": "Sukces",
+        "title": "Projekt został utworzony",
+        "subtitle": "Możesz teraz przejść do pracy nad projektem.",
+        "cta": "Przejdź do panelu projektu",
+        "downloadCard": "Pobierz kartę projektu (PDF)",
+        "downloadingCard": "Przygotowywanie karty projektu..."
+      },
+      "intro": {
+        "start": {
+          "label": "Start",
+          "title": "Start",
+          "line1": "Zamierzasz właśnie utworzyć nowy projekt.",
+          "line2": "Za chwilę przeprowadzimy Cię krok po kroku przez serię pytań.",
+          "line3": "Pytania pomogą:",
+          "line4": "W trakcie odpowiadania na pytania będzie dostępny wirtualny asystent, który pomoże wyjaśniać poszczególne zagadnienia.",
+          "line5": "Dobrym pomysłem jest na początku pobrać formularz w PDF i omówić go z zespołem.",
+          "download": "Pobierz formularz (PDF)",
+          "downloading": "Generowanie PDF...",
+          "list": {
+            "goal": "jasno określić cel projektu",
+            "scope": "zdefiniować zakres i rezultaty",
+            "plan": "przygotować solidne podstawy do planowania i realizacji"
+          }
+        },
+        "criteria": {
+          "label": "Kryteria projektu",
+          "title": "Czy to jest projekt?",
+          "subtitle": "Nie wszystko nadaje się na projekt. Upewnij się, że Twoja inicjatywa spełnia poniższe wymogi."
+        }
+      },
+      "criteria": {
+        "goal": {
+          "title": "Cel",
+          "text": "Projekt ma jasno określony rezultat końcowy, czyli wiadomo, co dokładnie ma zostać osiągnięte."
+        },
+        "time": {
+          "title": "Tymczasowość",
+          "text": "Projekt ma określony początek i koniec, więc nie jest działaniem ciągłym ani rutynowym."
+        },
+        "unique": {
+          "title": "Unikalność",
+          "text": "Projekt jest unikalny, ponieważ jego rezultat lub sposób realizacji jest jednorazowy w danym kontekście."
+        },
+        "scope": {
+          "title": "Zakres działań",
+          "text": "Projekt ma jasno określony zakres, czyli wiadomo, jakie działania są częścią projektu, a jakie do niego nie należą."
+        },
+        "constraints": {
+          "title": "Ograniczenia",
+          "text": "Projekt realizowany jest w ramach określonych ograniczeń czasu, budżetu i dostępnych zasobów."
+        },
+        "team": {
+          "title": "Zespół / odpowiedzialność",
+          "text": "Projekt ma przypisaną osobę lub zespół odpowiedzialny za jego realizację i wynik."
+        }
+      },
+      "steps": {
+        "name": "Nazwa projektu",
+        "category": "Kategoria projektu",
+        "vision": "Wizja",
+        "goal": "Cel projektu",
+        "justification": "Uzasadnienie projektu",
+        "direction": "Kierunek",
+        "mvp": "MVP",
+        "kpi": "KPI",
+        "milestones": "Kamienie milowe",
+        "resources": "Zasoby",
+        "chances": "Szanse",
+        "threats": "Zagrożenia",
+        "terms": "Terminy",
+        "wrapup": "Dopięcie",
+        "stakeholders": "Interesariusze",
+        "scope": "Zakres projektu",
+        "people": "Zasoby ludzkie",
+        "budget": "Budżet",
+        "outcome": "Rezultat projektu"
+      },
+      "print": {
+        "kicker": "Formularz do omówienia",
+        "title": "Formularz projektu",
+        "description": "Ten formularz należy uzupełnić na początku tworzenia projektu.",
+        "subtitle": "Wydrukuj ten dokument i uzupełnij go podczas spotkania z zespołem.",
+        "sections": {
+          "basics": "Informacje podstawowe",
+          "vision": "Wizja",
+          "direction": "Kierunek",
+          "resources": "Zasoby",
+          "wrapup": "Dopięcie"
+        },
+        "labels": {
+          "name": "Nazwa projektu",
+          "category": "Kategoria projektu",
+          "goal": "Cel projektu",
+          "outcome": "Rezultat projektu",
+          "stakeholders": "Interesariusze",
+          "justification": "Uzasadnienie projektu",
+          "mvp": "MVP",
+          "scopeIn": "Zakres (in scope)",
+          "scopeOut": "Poza zakresem (out of scope)",
+          "kpi": "KPI",
+          "milestones": "Kamienie milowe",
+          "people": "Zasoby ludzkie",
+          "budget": "Budżet całkowity",
+          "chances": "Szanse",
+          "threats": "Zagrożenia",
+          "terms": "Terminy (data + opis)"
+        }
+      },
+      "questions": {
+        "name": "Jak roboczo nazwać projekt, aby jasno opisywał cel?",
+        "category": "Jaki obszar lub temat najlepiej opisuje projekt?",
+        "goal": "Jaki konkretny, mierzalny cel chcesz osiągnąć?",
+        "outcome": "Jaki namacalny rezultat ma być gotowy na koniec?",
+        "stakeholders": "Kto jest interesariuszem i jaki ma wpływ lub zainteresowanie?",
+        "justification": "Na jaką potrzebę lub problem odpowiada projekt?",
+        "mvp": "Co jest minimalnym, niezbędnym zakresem projektu?",
+        "scopeIn": "Co wchodzi w zakres projektu?",
+        "scopeOut": "Co jest poza zakresem projektu?",
+        "kpi": "Po jakich wskaźnikach poznasz postęp?",
+        "milestones": "Jakie kluczowe kamienie milowe potwierdzą postęp?",
+        "people": "Ile osób jest realnie dostępnych do pracy?",
+        "budget": "Jaki jest realny, całkowity budżet projektu?",
+        "chances": "Co może pomóc w realizacji projektu?",
+        "threats": "Co może utrudnić realizację projektu?",
+        "terms": "Jakie są kluczowe terminy i ich opis?"
+      },
+      "expert": {
+        "label": "Oko specjalisty"
+      },
+      "autofill": {
+        "label": "Automatyczne uzupełnianie",
+        "action": "Uzupełnij automatycznie",
+        "loading": "Uzupełnianie...",
+        "description": "Ten element obsługuje automatyczne generowanie propozycji.",
+        "warning": "Wygenerowane treści często zawierają błędy i nie odpowiadają na realne potrzeby projektu - sprawdź je i popraw.",
+        "error": "Nie udało się uzupełnić automatycznie."
+      },
+      "name": {
+        "title": "Nazwa projektu",
+        "label": "Nazwa projektu",
+        "validation": {
+          "required": "Nazwa projektu jest wymagana."
+        },
+        "expert": {
+          "body1": "Pierwszym elementem projektu jest nadanie mu nazwy. Nie chodzi tutaj o nazwę handlową używaną w promocji, lecz o nazwę roboczą, która jasno opisze, czym projekt jest i jaki ma cel. Dobrym rozwiązaniem jest użycie prostego, opisowego sformułowania, np.:",
+          "list1": "Stworzenie strony internetowej kawiarni",
+          "list2": "Opracowanie i realizacja strategii marketingowej kawiarni",
+          "body2": "Dzięki temu cały zespół będzie miał stałą świadomość celu projektu."
+        }
+      },
+      "category": {
+        "title": "Kategoria projektu",
+        "label": "Kategoria projektu",
+        "hint": "Podaj obszar lub temat projektu, np. IT, marketing, wydarzenie, proces, szkolenie.",
+        "validation": {
+          "required": "Kategoria projektu jest wymagana."
+        },
+        "expert": {
+          "body": "Kategoria projektu pozwoli lepiej zrozumieć, jaki jest jego główny cel oraz na czym zespół powinien się skupić. Przykładowo, w projekcie zorganizowania koncertu właściwą kategorią byłaby organizacja wydarzenia, a aplikacja do zakupu biletów nie powinna być głównym elementem, na którym należy się koncentrować."
+        }
+      },
+      "vision": {
+        "interlude": "ETAP",
+        "title": "Wizja",
+        "description": "Na tym etapie ustalisz wizję swojego projektu: jaki jest jego cel, dlaczego powstał, co ma być jego efektem (rezultatem) oraz na czyje zapotrzebowania odpowiada i kogo należy uwzględnić w jego tworzeniu.",
+        "items": {
+          "goal": "Cel projektu",
+          "reason": "Powód powstania",
+          "outcome": "Efekt / rezultat",
+          "stakeholders": "Interesariusze"
+        },
+        "next": "Rozumiem, dalej"
+      },
+      "direction": {
+        "interlude": "ETAP",
+        "title": "Kierunek",
+        "description": "Na tym etapie określisz kluczowe elementy projektu, sposób mierzenia postępu oraz zaplanujesz najważniejsze momenty i kamienie milowe.",
+        "items": {
+          "mvp": "MVP / minimum projektu",
+          "scope": "Zakres (in/out)",
+          "kpi": "KPI i postęp",
+          "milestones": "Kamienie milowe"
+        },
+        "next": "Rozumiem, dalej"
+      },
+      "resources": {
+        "interlude": "ETAP",
+        "title": "Zasoby",
+        "description": "Na tym etapie określisz zasoby projektu: ludzi, dostępność oraz budżet potrzebny do realizacji.",
+        "items": {
+          "people": "Zasoby ludzkie",
+          "budget": "Budżet projektu"
+        },
+        "next": "Rozumiem, dalej"
+      },
+      "chances": {
+        "title": "Szanse projektu",
+        "label": "Jakie elementy/zjawiska mogą pomóc w realizacji projektu?",
+        "hint": "Wpisz element i wciśnij Enter",
+        "validation": {
+          "required": "Dodaj przynajmniej jedną szansę."
+        },
+        "remove": "Usuń element",
+        "empty": "Dodaj czynniki, które mogą realnie wesprzeć realizację projektu.",
+        "expert": {
+          "body1": "Szanse to czynniki zewnętrzne lub wewnętrzne, które mogą ułatwić realizację projektu.",
+          "body2": "Wypisz to, co zwiększa prawdopodobieństwo sukcesu lub przyspiesza działania.",
+          "examplesTitle": "Przykłady szans",
+          "examples": {
+            "1": "gotowe dane lub materiały od działu biznesu,",
+            "2": "wsparcie zarządu i szybkie decyzje,",
+            "3": "dostęp do sprawdzonych dostawców lub narzędzi."
+          }
+        }
+      },
+      "threats": {
+        "title": "Zagrożenia projektu",
+        "label": "Jakie elementy/zjawiska mogą utrudnić realizację projektu?",
+        "hint": "Wpisz element i wciśnij Enter",
+        "validation": {
+          "required": "Dodaj przynajmniej jedno zagrożenie."
+        },
+        "remove": "Usuń element",
+        "empty": "Dodaj czynniki, które mogą spowolnić lub utrudnić realizację projektu.",
+        "expert": {
+          "body1": "Zagrożenia to czynniki ryzyka, które mogą opóźnić projekt lub obniżyć jakość rezultatu.",
+          "body2": "Wypisz realne ryzyka, które warto monitorować i ograniczać.",
+          "examplesTitle": "Przykłady zagrożeń",
+          "examples": {
+            "1": "brak dostępności kluczowych osób w zespole,",
+            "2": "opóźnienia po stronie dostawców lub podwykonawców,",
+            "3": "zmiana priorytetów biznesowych w trakcie projektu."
+          }
+        }
+      },
+      "terms": {
+        "title": "Terminy projektu",
+        "label": "Terminy",
+        "hint": "Np. finalizacja analiz, warsztat kickoff, release MVP",
+        "validation": {
+          "required": "Dodaj przynajmniej jeden termin."
+        },
+        "remove": "Usuń termin",
+        "empty": "Dodaj najważniejsze terminy wraz z krótkim opisem.",
+        "expert": {
+          "body1": "Terminy opisują kluczowe momenty w czasie, które mają wpływ na realizację projektu.",
+          "body2": "Wybierz daty, które realnie determinują tempo prac lub wymagają decyzji interesariuszy.",
+          "examplesTitle": "Przykłady terminów",
+          "examples": {
+            "1": "2026-02-01 – zakończenie analizy wymagań,",
+            "2": "2026-03-15 â€“ prezentacja prototypu interesariuszom,",
+            "3": "2026-05-20 – wdrożenie wersji MVP."
+          }
+        }
+      },
+      "wrapup": {
+        "interlude": "ETAP",
+        "title": "Dopięcie",
+        "description": "Na tym etapie domkniesz ustalenia dotyczące terminów oraz ocenę szans i zagrożeń.",
+        "items": {
+          "terms": "Terminy projektu",
+          "chances": "Szanse",
+          "threats": "Zagrożenia"
+        },
+        "next": "Rozumiem, dalej"
+      },
+      "mvp": {
+        "title": "MVP",
+        "label": "Co musi koniecznie powstać?",
+        "hint": "Wpisz element i wciśnij Enter",
+        "validation": {
+          "required": "Opis MVP jest wymagany."
+        },
+        "remove": "Usuń element",
+        "empty": "Dodaj pierwsze elementy MVP, aby uporządkować niezbędne minimum.",
+        "expert": {
+          "body1": "MVP to minimalny zestaw elementów, bez których projekt nie spełni swojej podstawowej funkcji.",
+          "body2": "Wybierz tylko to, co jest absolutnie konieczne na start, aby potwierdzić wartość projektu i móc mierzyć postęp.",
+          "examplesTitle": "Przykłady MVP",
+          "examples": {
+            "1": "formularz zgłoszeń + panel do obsługi zgłoszeń (bez automatyzacji i integracji),",
+            "2": "prosty landing z rejestracją + ręczna obsługa zapisów,",
+            "3": "podstawowy workflow w narzędziu wewnętrznym bez raportów i analityki."
+          }
+        }
+      },
+      "goal": {
+        "title": "Cel projektu",
+        "label": "Opisz konkretny, mierzalny cel, do którego dążysz w tym projekcie.",
+        "hint": "Np: zwiększenie skuteczności identyfikowania problemów infrastrukturalnych występujących w mieście",
+        "validation": {
+          "required": "Cel projektu jest wymagany."
+        },
+        "expert": {
+          "body": "Cel projektu – jasno określ, jaki konkretny obszar lub problem ma zostać zmieniony w wyniku realizacji projektu. Cel powinien być jednoznaczny, precyzyjny i pozbawiony ogólnikowych lub niespójnych sformułowań.",
+          "projectLabel": "Projekt",
+          "projectText": "To co realizujesz: inicjatywa, działania, produkt lub usługa.",
+          "goalLabel": "Cel",
+          "goalText": "To po co to robisz: mierzalna zmiana, którą chcesz osiągnąć."
+        },
+        "examples": {
+          "goodTitle": "✅ Przykłady dobrze sformułowanych celów projektu",
+          "good": {
+            "1": "System zgłaszania usterek infrastruktury publicznej – zwiększenie skuteczności identyfikowania problemów infrastrukturalnych występujących w mieście.",
+            "2": "Aplikacja do rezerwacji wizyt lekarskich – skrócenie czasu umawiania wizyt w publicznych placówkach ochrony zdrowia.",
+            "3": "Platforma e-learningowa – zapewnienie uczniom stałego dostępu do materiałów dydaktycznych.",
+            "4": "System zarządzania odpadami – poprawa skuteczności segregacji odpadów komunalnych."
+          },
+          "badTitle": "❌ Przykłady źle sformułowanych celów projektu",
+          "bad": {
+            "1": "Aplikacja miejska – poprawa jakości życia mieszkańców.",
+            "2": "System informatyczny – usprawnienie wielu procesów.",
+            "3": "Platforma internetowa – nowoczesne rozwiązanie dla użytkowników."
+          }
+        }
+      },
+      "outcome": {
+        "title": "Rezultat projektu",
+        "label": "Co będzie produktem/wynikiem twojego projektu?",
+        "hint": "Np: gotowa aplikacja do obsługi zgłoszeń klientów.",
+        "validation": {
+          "required": "Rezultat projektu jest wymagany."
+        },
+        "expert": {
+          "body1": "Rezultat projektu to konkretny, mierzalny i namacalny efekt końcowy gotowy do zaprezentowania, przekazania interesariuszom lub wdrożenia w praktyce.",
+          "body2": "Opis powinien jednoznacznie wskazywać, co dokładnie będzie gotowe po zakończeniu projektu. Nie opisuj działań, etapów ani metod realizacji – skup się wyłącznie na efekcie końcowym.",
+          "body3": "Rezultat powinien być jednoznaczny, weryfikowalny i możliwy do oceny, tak aby nie było wątpliwości, czy projekt został zakończony zgodnie z założeniami."
+        },
+        "examples": {
+          "title": "Przykłady",
+          "1": "funkcjonująca strona internetowa,",
+          "2": "zrealizowane wydarzenie,",
+          "3": "wdrożony i udokumentowany proces obsługi klienta,",
+          "4": "gotowa aplikacja lub system informatyczny."
+        }
+      },
+      "justification": {
+        "title": "Uzasadnienie projektu",
+        "label": "Na jakie problemy odpowiada projekt? / Z jakiej potrzeby powstaje?",
+        "hint": "Np: powtarzające się opóźnienia w akceptacji wniosków między działami.",
+        "expert": {
+          "body1": "Projekt stanowi odpowiedź na konkretne potrzeby określonej grupy odbiorców i odpowiada na realne problemy, z którymi mierzą się oni na co dzień. Jego uzasadnieniem jest chęć rozwiązania zidentyfikowanych trudności oraz poprawa sytuacji uczestników projektu.",
+          "examplesTitle": "Przykłady problemów",
+          "examples": {
+            "1": "brak dostępu do wsparcia lub usług (np. ograniczona oferta zajęć w małych miejscowościach),",
+            "2": "niewystarczające kompetencje (np. brak umiejętności cyfrowych),",
+            "3": "trudności w aktywizacji społecznej lub zawodowej (np. osoby długotrwale bezrobotne),",
+            "4": "brak działań dopasowanych do specyficznych potrzeb danej grupy."
+          }
+        },
+        "validation": {
+          "required": "Uzasadnienie projektu jest wymagane."
+        }
+      },
+      "scope": {
+        "title": "Zakres projektu",
+        "inLabel": "In scope",
+        "outLabel": "Out of scope",
+        "placeholder": "Wpisz element i wciśnij Enter",
+        "inHint": "Co wchodzi w zakres projektu. Każdy Enter dodaje nowy element.",
+        "outHint": "Co jest poza zakresem projektu. Każdy Enter dodaje nowy element.",
+        "removeTag": "Usuń element",
+        "validation": {
+          "required": "Dodaj przynajmniej jeden element zakresu."
+        },
+        "skip": {
+          "label": "Nie uwzględniaj tego etapu",
+          "hint": "Możesz włączyć to później."
+        },
+        "expert": {
+          "body1": "Zakres projektu określa, jakie działania i rezultaty należą do odpowiedzialności zespołu, a które są wyraźnie wyłączone z realizacji.",
+          "body2": "Precyzyjne zdefiniowanie zakresu pozwala zachować jasność celów, zapobiega ich niekontrolowanemu rozszerzaniu oraz ułatwia monitorowanie postępów i ocenę efektów pracy.",
+          "exampleTitle": "Przykład",
+          "exampleProject": "Projekt: stworzenie strony internetowej dla firmy.",
+          "exampleInTitle": "W zakresie projektu (in scope):",
+          "exampleIn": "zaprojektowanie layoutu strony, wdrożenie podstron (np. strona główna, oferta, kontakt), konfiguracja systemu CMS, testy funkcjonalne.",
+          "exampleOutTitle": "Poza zakresem projektu (out of scope):",
+          "exampleOut": "tworzenie treści marketingowych, prowadzenie kampanii reklamowych, długoterminowe utrzymanie i aktualizacje strony po zakończeniu projektu."
+        }
+      },
+      "kpi": {
+        "title": "KPI",
+        "label": "Jak będziesz mierzyć postęp?",
+        "hint": "Wpisz wskaźnik i wciśnij Enter",
+        "validation": {
+          "required": "Dodaj przynajmniej jeden KPI."
+        },
+        "remove": "Usuń KPI",
+        "empty": "Dodaj wskaźniki, które pokażą, czy projekt idzie w dobrą stronę.",
+        "skip": {
+          "label": "Nie uwzględniaj tego etapu",
+          "hint": "Możesz włączyć to później."
+        },
+        "expert": {
+          "body1": "KPI to mierzalne wskaźniki, które pokazują, czy projekt zmierza w dobrym kierunku.",
+          "body2": "Wybierz tylko te, które faktycznie odzwierciedlają postęp i dają jasny sygnał, że zbliżasz się do celu.",
+          "examplesTitle": "Przykłady KPI",
+          "examples": {
+            "1": "czas reakcji na zgłoszenie < 24h,",
+            "2": "liczba aktywnych użytkowników miesięcznie,",
+            "3": "odsetek spraw rozwiązanych w pierwszym kontakcie."
+          }
+        }
+      },
+      "milestones": {
+        "title": "Kamienie milowe",
+        "label": "Jakie są najważniejsze elementy projektu?",
+        "hint": "Wpisz element i wciśnij Enter",
+        "validation": {
+          "required": "Dodaj przynajmniej jeden kamień milowy."
+        },
+        "remove": "Usuń element",
+        "empty": "Dodaj kamienie milowe, aby uchwycić kluczowe momenty i rezultaty.",
+        "expert": {
+          "body1": "Kamienie milowe wskazują kluczowe elementy, które potwierdzają, że projekt idzie w dobrą stronę.",
+          "body2": "Powinny być jasne, weryfikowalne i opisywać namacalne punkty kontrolne, a nie zadania.",
+          "examplesTitle": "Przykłady kamieni milowych",
+          "examples": {
+            "1": "zatwierdzony brief i wymagania,",
+            "2": "prototyp zweryfikowany z użytkownikami,",
+            "3": "wdrożone rozwiązanie odebrane przez interesariuszy."
+          }
+        }
+      },
+      "people": {
+        "title": "Zasoby ludzkie",
+        "splitTitle": "Podział dostępności",
+        "splitHint": "Określ liczbę osób często dostępnych oraz tych, które są rzadko dostępne w projekcie.",
+        "highLabel": "Wysoka dostępność",
+        "lowLabel": "Niska dostępność",
+        "expert": {
+          "body1": "Zasoby ludzkie to liczba osób, które realnie mogą wspierać projekt w określonym czasie.",
+          "body2": "Wysoka dostępność oznacza regularne zaangażowanie, a niska dostępność – wsparcie okazjonalne lub w wybranych etapach."
+        },
+        "validation": {
+          "nonNegative": "Wartość nie może być ujemna.",
+          "highRequired": "Liczba osób o wysokiej dostępności jest wymagana.",
+          "lowRequired": "Liczba osób o niskiej dostępności jest wymagana."
+        }
+      },
+      "budget": {
+        "title": "Budżet całkowity",
+        "label": "Budżet całkowity",
+        "hint": "Podaj planowany budżet całkowity w złotówkach, np. 5000.",
+        "validation": {
+          "nonNegative": "Budżet nie może być ujemny.",
+          "required": "Budżet projektu jest wymagany."
+        },
+        "expert": {
+          "body1": "Budżet całkowity to realny koszt realizacji wszystkich zaplanowanych działań i zasobów.",
+          "body2": "Uwzględnij koszty ludzi, narzędzi, materiałów, podwykonawców oraz rezerwę na nieprzewidziane wydatki.",
+          "exampleTitle": "Przykład",
+          "example": "np. budżet całkowity 120 000 zł: zespół 80 000 zł, narzędzia 15 000 zł, podwykonawcy 15 000 zł, rezerwa 10 000 zł."
+        }
+      },
+      "stakeholders": {
+        "title": "Interesariusze",
+        "validation": {
+          "name": "Podaj nazwę interesariusza.",
+          "required": "Dodaj przynajmniej jednego interesariusza."
+        },
+        "expert": {
+          "body1": "Żaden projekt nie powstaje w próżni — zawsze jest odpowiedzią na potrzeby konkretnych osób lub grup. Dlatego na etapie planowania projektu należy zidentyfikować wszystkich interesariuszy, których opinie, potrzeby lub decyzje mogą mieć wpływ na jego realizację.",
+          "body2": "Zastanów się, kogo należy brać pod uwagę podczas tworzenia projektu, a następnie zaznacz te osoby na wykresie, uwzględniając:",
+          "list1": "Wpływ – znaczenie opinii danej osoby lub grupy dla powodzenia projektu (np. decydenci tacy jak CEO).",
+          "list2": "Zainteresowanie – stopień, w jakim projekt odpowiada na realne potrzeby i problemy danej osoby lub grupy.",
+          "body3": "Przykład: w przypadku systemu ticketowego dla działu obsługi klienta głównym interesariuszem będzie dział Customer Service, ponieważ to jego codzienne problemy projekt ma rozwiązywać, a poziom zaangażowania tej grupy będzie wysoki."
+        },
+        "chart": {
+          "title": "Mapa interesariuszy (wpływ - zainteresowanie)",
+          "subtitle": "Dodaj interesariusza, a potem przeciągnij go na mapę.",
+          "axis": {
+            "power": "Wpływ ↑",
+            "interest": "Zainteresowanie â†’"
+          },
+          "quadrants": {
+            "highLow": "Wysoki wpływ / niskie zainteresowanie",
+            "highHigh": "Wysoki wpływ / wysokie zainteresowanie",
+            "lowLow": "Niski wpływ / niskie zainteresowanie",
+            "lowHigh": "Niski wpływ / wysokie zainteresowanie"
+          }
+        },
+        "input": {
+          "label": "Nazwa interesariusza",
+          "placeholder": "Wpisz i naciśnij Enter"
+        },
+        "remove": "Usuń interesariusza"
+      },
+      "assistant": {
+        "title": "Asystent projektu",
+        "subtitle": "Dowiedz się więcej",
+        "initial": "Cześć! Jestem asystentem projektu. W czym mogę pomóc?",
+        "typing": "Asystent pisze...",
+        "placeholder": "Napisz pytanie...",
+        "errorResponse": "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
+        "errorConnection": "Nie udało się połączyć z asystentem. Spróbuj ponownie.",
+        "context": {
+          "step": "Krok:",
+          "name": "Nazwa projektu:",
+          "category": "Kategoria projektu:",
+          "goal": "Cel projektu:",
+          "justification": "Uzasadnienie projektu:",
+          "stakeholders": "Interesariusze:",
+          "interest": "zainteresowanie",
+          "power": "wpływ",
+          "mvp": "MVP:",
+          "kpis": "KPI:",
+          "milestones": "Kamienie milowe:",
+          "chances": "Szanse:",
+          "threats": "Zagrożenia:",
+          "terms": "Terminy:",
+          "inScope": "Zakres in:",
+          "outScope": "Zakres out:",
+          "highAvailability": "Wysoka dostępność:",
+          "lowAvailability": "Niska dostępność:",
+          "budget": "Budżet:",
+          "outcome": "Rezultat projektu:"
+        }
+      },
+      "errors": {
+        "permissions": "Nie udało się pobrać uprawnień.",
+        "create": "Nie udało się utworzyć projektu."
+      }
+    },
+    "view": {
+      "loading": "Ładowanie projektu...",
+      "errors": {
+        "loadFailed": "Nie udało się pobrać projektu."
+      },
+      "accessDenied": {
+        "label": "Brak dostępu",
+        "title": "Nie znaleziono projektu lub nie masz do niego dostępu",
+        "hint": "Sprawdź link lub poproś lidera projektu o zaproszenie."
+      },
+      "header": {
+        "projects": "Projekty",
+        "untitled": "Projekt bez nazwy",
+        "draft": "Draft",
+        "noDescription": "Brak opisu projektu. Dodaj kontekst, aby zespół szybciej się wdrożył.",
+        "lastUpdated": "Ostatnia aktualizacja:"
+      },
+      "overview": {
+        "pulseLabel": "Pulse",
+        "title": "Stan projektu",
+        "statusDraft": "Draft",
+        "statusActive": "Aktywny",
+        "summary": "Twój zespół domyka sprint i utrzymuje stabilny przepływ. Skupcie się na blokadach i dopięciu zależności przed następnym wydaniem.",
+        "priorities": {
+          "label": "Priorytety",
+          "title": "Najważniejsze inicjatywy",
+          "items": {
+            "dependencies": "Zamknięcie krytycznych zależności sprintu",
+            "roadmap": "Doprecyzowanie roadmapy Q2",
+            "qa": "Ustabilizowanie pipeline QA",
+            "report": "Przygotowanie raportu dla interesariuszy"
+          },
+          "retro": "Najbliższa retrospektywa: 14:00, piątek."
+        }
+      },
+      "metrics": {
+        "open": {
+          "label": "Otwarte",
+          "value": "42",
+          "detail": "-12% tyg/tyg"
+        },
+        "inProgress": {
+          "label": "W toku",
+          "value": "13",
+          "detail": "+3 od wczoraj"
+        },
+        "blockers": {
+          "label": "Blokady",
+          "value": "4",
+          "detail": "Wymaga eskalacji"
+        },
+        "avgTime": {
+          "label": "Średni czas",
+          "value": "3,8d",
+          "detail": "Cel 4,5d"
+        }
+      },
+      "activity": {
+        "insights": {
+          "label": "Insights",
+          "title": "Kondycja projektu",
+          "risk": {
+            "label": "Ryzyko",
+            "value": "Średnie"
+          },
+          "scope": {
+            "label": "Scope",
+            "value": "+12%"
+          },
+          "velocity": {
+            "label": "Velocity",
+            "value": "Stabilna"
+          }
+        },
+        "upcoming": {
+          "label": "Nadchodzące",
+          "title": "Timeline"
+        },
+        "timeline": {
+          "items": {
+            "demo": "Demo dla klienta - poniedziałek 10:00",
+            "planning": "Planowanie sprintu - wtorek 14:00",
+            "release": "Release candidate - piątek 16:00"
+          }
+        },
+        "feed": {
+          "label": "Aktywność",
+          "title": "Ostatnie zdarzenia",
+          "items": {
+            "review": "PR #128 podbity do review",
+            "priority": "Nowa decyzja: priorytet krytyczny",
+            "sprint": "Dodano 3 zadania do sprintu",
+            "blocker": "Zamknięto blokadę API"
+          },
+          "times": {
+            "review": "5 min temu",
+            "priority": "45 min temu",
+            "sprint": "2 godz. temu",
+            "blocker": "Wczoraj"
+          }
+        }
+      },
+      "board": {
+        "label": "Board",
+        "title": "Podgląd tablicy",
+        "sprint": "Sprint 6",
+        "columns": {
+          "todo": {
+            "title": "Do zrobienia",
+            "items": {
+              "onboarding": "Onboarding nowego klienta",
+              "risk": "Analiza ryzyk dla MVP",
+              "requirements": "Zebranie wymagań analitycznych"
+            }
+          },
+          "inProgress": {
+            "title": "W toku",
+            "items": {
+              "backlog": "Projekt widoku backlogu",
+              "done": "Spisanie definicji Done",
+              "api": "Refaktor API projektów"
+            }
+          },
+          "review": {
+            "title": "Review",
+            "items": {
+              "e2e": "Testy E2E rejestracji",
+              "oauth": "Integracja z OAuth"
+            }
+          }
+        }
+      },
+      "sidebar": {
+        "project": "Projekt",
+        "untitled": "Projekt bez nazwy",
+        "navigation": "Nawigacja",
+        "live": "Na żywo",
+        "statusLabel": "Status",
+        "statusTitle": "Sprint 6 w toku",
+        "statusDetail": "8 zadań w pracy, 4 w review.",
+        "nav": {
+          "overview": "Przegląd",
+          "backlog": "Backlog",
+          "board": "Tablica",
+          "timeline": "Oś czasu",
+          "reports": "Raporty",
+          "people": "Ludzie",
+          "settings": "Ustawienia"
+        }
+      },
+      "settings": {
+        "badge": "Ustawienia projektu",
+        "title": "Ustawienia projektu",
+        "subtitle": "Zarządzaj podstawowymi danymi, członkami i integracjami projektu.",
+        "projectLabel": "Projekt",
+        "projectId": "ID:",
+        "nameLabel": "Nazwa projektu",
+        "descriptionLabel": "Opis projektu",
+        "archive": "Archiwizuj projekt",
+        "members": {
+          "title": "Członkowie",
+          "subtitle": "Dodawaj i zarządzaj rolami zespołu w kolejnej iteracji.",
+          "comingSoon": "Wkrótce: role, zaproszenia i poziomy uprawnień."
+        },
+        "integrations": {
+          "title": "Integracje",
+          "subtitle": "Połącz projekt z repozytoriami i kalendarzami.",
+          "comingSoon": "Wkrótce: GitHub, Slack, Jira Import."
+        }
+      }
+    }
+  }
+}

@@ -176,7 +176,7 @@ test("editing a user sends updated permissions", async ({ page }) => {
 
   let received: { name?: string; permissions?: string[] } | null = null;
 
-  await page.route("**/api/users/u-2", async (route) => {
+  await page.route("**/api/users/**", async (route) => {
     if (route.request().method() !== "PUT") {
       await route.fallback();
       return;
@@ -191,7 +191,7 @@ test("editing a user sends updated permissions", async ({ page }) => {
           id: "u-2",
           name: "Dev User",
           email: "dev@example.com",
-          permissions: received?.permissions ?? [],
+          permissions: received?.permissions ? [],
           createdAt: new Date().toISOString(),
         },
       }),
@@ -201,13 +201,89 @@ test("editing a user sends updated permissions", async ({ page }) => {
   await page.goto("/settings/users");
 
   const editButtons = page.getByRole("button", { name: "Zmien" });
+  await expect(editButtons.nth(1)).toBeEnabled();
   await editButtons.nth(1).click();
 
   await page.getByRole("button", { name: /wybierz uprawnienia|wybrane/i }).click();
   await page.getByRole("button", { name: "Upload photos" }).click();
+  await page.getByText("Lista uzytkownikow").click();
 
+  const requestPromise = page.waitForRequest(
+    (request) => request.url().includes("/api/users/") && request.method() === "PUT",
+  );
   await page.getByRole("button", { name: "Zapisz" }).click();
 
-  expect(received).not.toBeNull();
-  expect(received?.permissions).toContain("UPLOAD_PHOTOS");
+  const request = await requestPromise;
+  const payload = request.postDataJSON() as { name?: string; permissions?: string[] };
+  expect(payload?.permissions).toContain("UPLOAD_PHOTOS");
+});
+
+test("invite generation sends payload and shows link", async ({ page }) => {
+  await mockSession(page);
+  await mockSettings(page, ["CREATE_USERS"]);
+  await mockPermissions(page);
+  await mockUsers(page, []);
+
+  let invitePayload: { name?: string; email?: string } | null = null;
+  await page.route("**/api/invites", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    invitePayload = route.request().postDataJSON() as { name?: string; email?: string };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ link: "http://localhost:3000/register?token=abc" }),
+    });
+  });
+
+  await page.goto("/settings/users");
+  await page.getByLabel("Imie i nazwisko").fill("New User");
+  await page.getByLabel("Email").fill("new@example.com");
+  await page.getByRole("button", { name: "Generuj link" }).click();
+
+  await expect(page.getByText("Wygenerowano link zaproszenia.")).toBeVisible();
+  await expect(page.getByText("http://localhost:3000/register?token=abc")).toBeVisible();
+  expect(invitePayload).toEqual({ name: "New User", email: "new@example.com" });
+});
+
+test("remove user flow deletes account", async ({ page }) => {
+  await mockSession(page);
+  await mockSettings(page, ["REMOVE_USERS"]);
+  await mockPermissions(page);
+  await mockUsers(page, [
+    {
+      id: "u-1",
+      name: "Admin User",
+      email: "admin@example.com",
+      permissions: ["REMOVE_USERS"],
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "u-2",
+      name: "Dev User",
+      email: "dev@example.com",
+      permissions: [],
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+
+  await page.route("**/api/users/u-2", async (route) => {
+    if (route.request().method() !== "DELETE") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ status: "ok" }),
+    });
+  });
+
+  await page.goto("/settings/users");
+  await page.getByRole("button", { name: "Usun" }).nth(1).click();
+  await page.getByRole("button", { name: "Potwierdz usuniecie" }).click();
+
+  await expect(page.getByText("dev@example.com")).toHaveCount(0);
 });

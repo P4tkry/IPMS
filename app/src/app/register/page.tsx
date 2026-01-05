@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Fraunces } from "next/font/google";
+import { useI18n } from "@/i18n/useI18n";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
+  const { t } = useI18n();
   const [invite, setInvite] = useState<InviteData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,19 +33,23 @@ export default function RegisterPage() {
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        name: Yup.string().required("Imie i nazwisko jest wymagane."),
-        email: Yup.string().email("Podaj poprawny email.").required("Email jest wymagany."),
-        password: Yup.string().min(8, "Haslo musi miec min 8 znakow.").required("Haslo jest wymagane."),
+        name: Yup.string().required(t("auth.validation.nameRequired")),
+        email: Yup.string()
+          .email(t("auth.validation.emailInvalid"))
+          .required(t("auth.validation.emailRequired")),
+        password: Yup.string()
+          .min(8, t("auth.validation.passwordMin"))
+          .required(t("auth.validation.passwordRequired")),
         confirmPassword: Yup.string()
-          .oneOf([Yup.ref("password")], "Hasla musza byc takie same.")
-          .required("Potwierdz haslo."),
+          .oneOf([Yup.ref("password")], t("auth.validation.passwordsMismatch"))
+          .required(t("auth.validation.confirmPasswordRequired")),
       }),
-    [],
+    [t],
   );
 
   useEffect(() => {
     if (!token) {
-      setError("Brak tokenu zaproszenia.");
+      setError(t("auth.register.missingToken"));
       setIsLoading(false);
       return;
     }
@@ -55,12 +61,12 @@ export default function RegisterPage() {
         const response = await fetch(`/api/invites?token=${encodeURIComponent(token)}`);
         const payload = await response.json();
         if (!response.ok) {
-          setError(payload?.message || "Nieprawidlowe zaproszenie.");
+          setError(payload?.message || t("auth.register.invalidInvite"));
           return;
         }
         setInvite(payload?.invite || null);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Nieprawidlowe zaproszenie.";
+        const message = err instanceof Error ? err.message : t("auth.register.invalidInvite");
         setError(message);
       } finally {
         setIsLoading(false);
@@ -68,33 +74,27 @@ export default function RegisterPage() {
     };
 
     loadInvite();
-  }, [token]);
+  }, [t, token]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f8f4ef] px-6 text-[#2a241f]">
-      <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#f1d9bf] blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-10 h-80 w-80 rounded-full bg-[#dfe7c6] blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:radial-gradient(#b9a38c_1px,transparent_1px)] [background-size:24px_24px]" />
-
-      <div className="relative mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center py-20">
+    <div className="relative min-h-screen px-6 text-[#2a241f]">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center py-20">
         <Card className="w-full border-[#e2d6c9] bg-white/80 shadow-[0_30px_80px_-40px_rgba(60,40,20,0.45)] backdrop-blur">
           <CardContent className="space-y-6 p-8">
             <div className="space-y-2">
               <Badge className="w-fit bg-[#2a241f] text-[#f6efe8] hover:bg-[#2a241f]">
-                Registration
+                {t("auth.register.badge")}
               </Badge>
               <h1
                 className={`${fraunces.className} text-balance text-3xl font-semibold leading-tight tracking-tight`}
               >
-                Utworz konto w IPMS
+                {t("auth.register.title")}
               </h1>
-              <p className="text-sm text-[#6f6255]">
-                Dokoncz rejestracje na podstawie zaproszenia.
-              </p>
+              <p className="text-sm text-[#6f6255]">{t("auth.register.subtitle")}</p>
             </div>
 
             {isLoading ? (
-              <p className="text-sm text-[#6f6255]">Ladowanie zaproszenia...</p>
+              <p className="text-sm text-[#6f6255]">{t("auth.register.loading")}</p>
             ) : null}
 
             {error ? (
@@ -124,13 +124,12 @@ export default function RegisterPage() {
                     });
                     const payload = await response.json();
                     if (!response.ok) {
-                      setError(payload?.message || "Nie udalo sie utworzyc konta.");
+                      setError(payload?.message || t("auth.register.createFailed"));
                       return;
                     }
                     router.replace("/login");
                   } catch (err) {
-                    const message =
-                      err instanceof Error ? err.message : "Nie udalo sie utworzyc konta.";
+                    const message = err instanceof Error ? err.message : t("auth.register.createFailed");
                     setError(message);
                   } finally {
                     setIsSubmittingInvite(false);
@@ -141,7 +140,7 @@ export default function RegisterPage() {
                   <Form className="mt-6 space-y-4">
                     <div>
                       <label className="text-sm font-medium" htmlFor="name">
-                        Imie i nazwisko
+                        {t("auth.fields.fullName")}
                       </label>
                       <Field
                         id="name"
@@ -156,7 +155,7 @@ export default function RegisterPage() {
 
                     <div>
                       <label className="text-sm font-medium" htmlFor="email">
-                        Email
+                        {t("auth.fields.email")}
                       </label>
                       <Field
                         id="email"
@@ -172,7 +171,7 @@ export default function RegisterPage() {
 
                     <div>
                       <label className="text-sm font-medium" htmlFor="password">
-                        Haslo
+                        {t("auth.fields.password")}
                       </label>
                       <Field
                         id="password"
@@ -187,7 +186,7 @@ export default function RegisterPage() {
 
                     <div>
                       <label className="text-sm font-medium" htmlFor="confirmPassword">
-                        Potwierdz haslo
+                        {t("auth.fields.confirmPassword")}
                       </label>
                       <Field
                         id="confirmPassword"
@@ -205,7 +204,9 @@ export default function RegisterPage() {
                       className="w-full bg-[#2a241f] text-[#f6efe8] hover:bg-[#3a332c]"
                       disabled={isSubmittingInvite}
                     >
-                      {isSubmittingInvite ? "Tworzenie konta..." : "Utworz konto"}
+                      {isSubmittingInvite
+                        ? t("auth.register.submitting")
+                        : t("auth.register.submit")}
                     </Button>
                   </Form>
                 )}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useI18n } from "@/i18n/useI18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 
 export function Navbar() {
   const { data: session } = authClient.useSession();
+  const { t } = useI18n();
 
   const signOut = async () => {
     await authClient.signOut();
@@ -41,17 +43,17 @@ export function Navbar() {
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link className="text-[#6f6255] hover:text-[#2a241f]" href="/">
-            Home
+            {t("nav.home")}
           </Link>
           {session?.user ? (
             <>
               <Link className="text-[#6f6255] hover:text-[#2a241f]" href="/dashboard">
-                Dashboard
+                {t("nav.dashboard")}
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none">
                   <Avatar className="h-9 w-9 border border-[#d7c8b7]">
-                    <AvatarImage src={session.user.image ?? undefined} />
+                    <AvatarImage src={session.user.image || undefined} />
                     <AvatarFallback className="bg-[#f8f4ef] text-xs text-[#2a241f]">
                       {initials}
                     </AvatarFallback>
@@ -62,20 +64,20 @@ export function Navbar() {
                     {session.user.name || session.user.email}
                     <div className="mt-1 text-xs text-muted-foreground">{session.user.email}</div>
                   </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">Ustawienia</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={signOut}>Wyloguj</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">{t("nav.settings")}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>{t("nav.logout")}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Link
               className="rounded-full border border-[#d7c8b7] px-4 py-2 text-[#2a241f] hover:border-[#2a241f]"
               href="/login"
             >
-              Logowanie
+              {t("nav.login")}
             </Link>
           )}
         </nav>

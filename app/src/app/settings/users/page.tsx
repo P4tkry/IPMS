@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useClickAway } from "react-use";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "@/lib/auth-client";
-
+import { useI18n } from "@/i18n/useI18n";
 
 type UserRow = {
   id: string;
@@ -32,6 +32,7 @@ type PermissionSelectProps = {
 };
 
 function PermissionSelect({ options, selected, onChange, disabled }: PermissionSelectProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -73,8 +74,12 @@ function PermissionSelect({ options, selected, onChange, disabled }: PermissionS
             : "border-[#d7c8b7] bg-white text-[#2a241f] hover:border-[#2a241f]"
         }`}
       >
-        {selected.length > 0 ? `${selected.length} wybrane` : "Wybierz uprawnienia"}
-        <span className="text-[10px] text-[#8d7b68]">{open ? "Zamknij" : "Otworz"}</span>
+        {selected.length > 0
+          ? `${selected.length} ${t("settings.users.permissions.selected")}`
+          : t("settings.users.permissions.placeholder")}
+        <span className="text-[10px] text-[#8d7b68]">
+          {open ? t("common.close") : t("common.open")}
+        </span>
       </button>
 
       {open ? (
@@ -82,12 +87,12 @@ function PermissionSelect({ options, selected, onChange, disabled }: PermissionS
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Szukaj uprawnien..."
+            placeholder={t("settings.users.permissions.search")}
             className="w-full rounded-lg border border-[#d7c8b7] bg-[#fcfaf7] px-3 py-2 text-xs text-[#2a241f] outline-none focus:border-[#2a241f]"
           />
           <div className="mt-3 max-h-48 space-y-2 overflow-auto pr-1">
             {filtered.length === 0 ? (
-              <p className="text-xs text-[#8d7b68]">Brak wynikow.</p>
+              <p className="text-xs text-[#8d7b68]">{t("settings.users.permissions.empty")}</p>
             ) : (
               filtered.map((option) => {
                 const active = selected.includes(option.value);
@@ -103,7 +108,7 @@ function PermissionSelect({ options, selected, onChange, disabled }: PermissionS
                     }`}
                   >
                     {option.label}
-                    <span className="text-[10px]">{active ? "Wybrane" : ""}</span>
+                    <span className="text-[10px]">{active ? t("settings.users.permissions.active") : ""}</span>
                   </button>
                 );
               })
@@ -117,6 +122,7 @@ function PermissionSelect({ options, selected, onChange, disabled }: PermissionS
 
 export default function SettingsUsersPage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { data: session, isPending } = authClient.useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -186,10 +192,13 @@ export default function SettingsUsersPage() {
         ]);
         const settingsPayload = await settingsResponse.json();
         if (!settingsResponse.ok) {
-          setError(settingsPayload?.message || "Nie udalo sie pobrac ustawien.");
+          setError(settingsPayload?.message || t("settings.users.errors.loadFailed"));
         } else {
           const permissions = settingsPayload?.user?.permissions || [];
-          const canViewUsers = permissions.includes("CREATE_USERS") || permissions.includes("UPDATE_USERS") || permissions.includes("REMOVE_USERS");
+          const canViewUsers =
+            permissions.includes("CREATE_USERS") ||
+            permissions.includes("UPDATE_USERS") ||
+            permissions.includes("REMOVE_USERS");
           if (!canViewUsers) {
             router.replace("/settings/account");
             return;
@@ -206,12 +215,12 @@ export default function SettingsUsersPage() {
 
         const usersPayload = await usersResponse.json();
         if (!usersResponse.ok) {
-          setUsersError(usersPayload?.message || "Nie udalo sie pobrac listy kont.");
+          setUsersError(usersPayload?.message || t("settings.users.errors.usersFailed"));
         } else {
           setUsers(usersPayload?.users || []);
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Nie udalo sie pobrac danych.";
+        const message = err instanceof Error ? err.message : t("settings.users.errors.loadFailed");
         setError(message);
         setUsersError(message);
       } finally {
@@ -221,7 +230,7 @@ export default function SettingsUsersPage() {
     };
 
     load();
-  }, [isPending, router, session?.user]);
+  }, [isPending, router, session?.user, t]);
 
   const handleInviteSubmit = async () => {
     const trimmedName = inviteName.trim();
@@ -230,7 +239,7 @@ export default function SettingsUsersPage() {
     setInviteSuccess(null);
     setInviteLink(null);
     if (!trimmedName || !trimmedEmail) {
-      setInviteError("Uzupelnij imie i email.");
+      setInviteError(t("settings.users.invites.missing"));
       return;
     }
     setIsInviteLoading(true);
@@ -242,13 +251,13 @@ export default function SettingsUsersPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        setInviteError(payload?.message || "Nie udalo sie wygenerowac linku.");
+        setInviteError(payload?.message || t("settings.users.invites.generateFailed"));
         return;
       }
       setInviteLink(payload?.link || null);
-      setInviteSuccess("Wygenerowano link zaproszenia.");
+      setInviteSuccess(t("settings.users.invites.success"));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nie udalo sie wygenerowac linku.";
+      const message = err instanceof Error ? err.message : t("settings.users.invites.generateFailed");
       setInviteError(message);
     } finally {
       setIsInviteLoading(false);
@@ -259,9 +268,9 @@ export default function SettingsUsersPage() {
     if (!inviteLink) return;
     try {
       await navigator.clipboard.writeText(inviteLink);
-      setInviteSuccess("Link skopiowany.");
+      setInviteSuccess(t("settings.users.invites.copied"));
     } catch {
-      setInviteError("Nie udalo sie skopiowac linku.");
+      setInviteError(t("settings.users.invites.copyFailed"));
     }
   };
 
@@ -287,7 +296,7 @@ export default function SettingsUsersPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        setUsersError(payload?.message || "Nie udalo sie zapisac zmian.");
+        setUsersError(payload?.message || t("settings.users.errors.updateFailed"));
         return;
       }
       setUsers((prev) =>
@@ -295,7 +304,7 @@ export default function SettingsUsersPage() {
       );
       cancelEdit();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nie udalo sie zapisac zmian.";
+      const message = err instanceof Error ? err.message : t("settings.users.errors.updateFailed");
       setUsersError(message);
     }
   };
@@ -306,12 +315,12 @@ export default function SettingsUsersPage() {
       const response = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
       const payload = await response.json();
       if (!response.ok) {
-        setUsersError(payload?.message || "Nie udalo sie usunac konta.");
+        setUsersError(payload?.message || t("settings.users.errors.deleteFailed"));
         return;
       }
       setUsers((prev) => prev.filter((row) => row.id !== user.id));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nie udalo sie usunac konta.";
+      const message = err instanceof Error ? err.message : t("settings.users.errors.deleteFailed");
       setUsersError(message);
     }
   };
@@ -339,22 +348,24 @@ export default function SettingsUsersPage() {
       <CardContent className="space-y-6 p-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-            All accounts
+            {t("settings.users.badge")}
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-semibold text-[#2a241f]">Zarzadzanie kontami</h2>
+              <h2 className="text-2xl font-semibold text-[#2a241f]">
+                {t("settings.users.title")}
+              </h2>
               <p className="mt-2 text-sm text-[#6f6255]">
-                Lista wszystkich uzytkownikow w organizacji.
+                {t("settings.users.subtitle")}
               </p>
             </div>
             <div className="rounded-full border border-[#eadfd3] bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68] shadow-sm">
-              {users.length} kont
+              {users.length} {t("settings.users.count")}
             </div>
           </div>
         </div>
 
-        {isLoading ? <p className="text-sm text-[#6f6255]">Ladowanie...</p> : null}
+        {isLoading ? <p className="text-sm text-[#6f6255]">{t("common.loading")}</p> : null}
         {error ? (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
@@ -365,14 +376,14 @@ export default function SettingsUsersPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-                Zaproszenia
+                {t("settings.users.invites.label")}
               </p>
               <p className="mt-1 text-sm text-[#6f6255]">
-                Wygeneruj link do rejestracji dla nowego uzytkownika.
+                {t("settings.users.invites.subtitle")}
               </p>
             </div>
             <span className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-              Create users
+              {t("settings.users.invites.badge")}
             </span>
           </div>
 
@@ -384,7 +395,7 @@ export default function SettingsUsersPage() {
                     className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7b68]"
                     htmlFor="inviteName"
                   >
-                    Imie i nazwisko
+                    {t("settings.users.invites.nameLabel")}
                   </label>
                   <input
                     id="inviteName"
@@ -398,7 +409,7 @@ export default function SettingsUsersPage() {
                     className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7b68]"
                     htmlFor="inviteEmail"
                   >
-                    Email
+                    {t("settings.users.invites.emailLabel")}
                   </label>
                   <input
                     id="inviteEmail"
@@ -415,7 +426,9 @@ export default function SettingsUsersPage() {
                     onClick={handleInviteSubmit}
                     disabled={isInviteLoading}
                   >
-                    {isInviteLoading ? "Generowanie..." : "Generuj link"}
+                    {isInviteLoading
+                      ? t("settings.users.invites.generating")
+                      : t("settings.users.invites.generate")}
                   </Button>
                 </div>
               </div>
@@ -427,7 +440,7 @@ export default function SettingsUsersPage() {
                     className="inline-flex items-center gap-2 rounded-full border border-[#d7c8b7] bg-white px-3 py-2 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
                     onClick={handleCopyInvite}
                   >
-                    Kopiuj link
+                    {t("settings.users.invites.copy")}
                   </button>
                 ) : null}
               </div>
@@ -451,7 +464,7 @@ export default function SettingsUsersPage() {
             </div>
           ) : (
             <div className="rounded-lg border border-[#eadfd3] bg-[#f8f4ef] px-3 py-2 text-xs text-[#6f6255]">
-              Brak uprawnien do tworzenia kont.
+              {t("settings.users.invites.noAccess")}
             </div>
           )}
         </section>
@@ -459,12 +472,12 @@ export default function SettingsUsersPage() {
         <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-6 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-              Lista uzytkownikow
+              {t("settings.users.list.label")}
             </p>
             <input
               value={userQuery}
               onChange={(event) => setUserQuery(event.target.value)}
-              placeholder="Szukaj po nazwie lub emailu"
+              placeholder={t("settings.users.list.search")}
               className="w-full rounded-full border border-[#d7c8b7] bg-white px-4 py-2 text-xs text-[#2a241f] outline-none focus:border-[#2a241f] md:w-64"
             />
           </div>
@@ -475,21 +488,23 @@ export default function SettingsUsersPage() {
             </div>
           ) : null}
 
-          {usersLoading ? <p className="text-sm text-[#6f6255]">Ladowanie listy...</p> : null}
+          {usersLoading ? (
+            <p className="text-sm text-[#6f6255]">{t("settings.users.list.loading")}</p>
+          ) : null}
 
           {!usersLoading && filteredUsers.length === 0 && !usersError ? (
             <div className="rounded-lg border border-[#eadfd3] bg-white px-3 py-2 text-sm text-[#6f6255]">
-              Brak uzytkownikow do wyswietlenia.
+              {t("settings.users.list.empty")}
             </div>
           ) : null}
 
           {filteredUsers.length > 0 ? (
             <div className="space-y-3">
               <div className="grid gap-3 rounded-2xl border border-[#eadfd3] bg-white/80 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68] md:grid-cols-[1.6fr_1.6fr_2.3fr_1fr]">
-                <span>Uzytkownik</span>
-                <span>Email</span>
-                <span>Uprawnienia</span>
-                <span className="text-right">Akcje</span>
+                <span>{t("settings.users.list.headers.user")}</span>
+                <span>{t("settings.users.list.headers.email")}</span>
+                <span>{t("settings.users.list.headers.permissions")}</span>
+                <span className="text-right">{t("settings.users.list.headers.actions")}</span>
               </div>
 
               {filteredUsers.map((user) => {
@@ -499,7 +514,10 @@ export default function SettingsUsersPage() {
                   (permission) => permissionLabels.get(permission) || permission,
                 );
                 const visiblePermissions = permissionLabelsList.slice(0, 2);
-                const hiddenCount = Math.max(permissionLabelsList.length - visiblePermissions.length, 0);
+                const hiddenCount = Math.max(
+                  permissionLabelsList.length - visiblePermissions.length,
+                  0,
+                );
                 if (isEditing) {
                   return (
                     <div
@@ -534,24 +552,24 @@ export default function SettingsUsersPage() {
                               className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
                               onClick={cancelEdit}
                             >
-                              Anuluj
+                              {t("common.cancel")}
                             </button>
                             <button
                               type="button"
                               className="rounded-full border border-[#2a241f] bg-[#2a241f] px-3 py-1 text-xs text-[#f6efe8] shadow-sm transition hover:bg-[#3a332c]"
                               onClick={saveEdit}
                             >
-                              Zapisz
+                              {t("common.saveChanges")}
                             </button>
                           </div>
                           <span className="text-[10px] uppercase tracking-[0.2em] text-[#8d7b68]">
-                            {new Date(user.createdAt).toLocaleDateString("pl-PL")}
+                            {new Date(user.createdAt).toLocaleDateString(locale)}
                           </span>
                         </div>
                       </div>
                       <div className="mt-4 border-t border-[#f0e6db] pt-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8d7b68]">
-                          Uprawnienia
+                          {t("settings.users.list.permissionsLabel")}
                         </p>
                         <div className="mt-3">
                           <PermissionSelect
@@ -585,7 +603,7 @@ export default function SettingsUsersPage() {
                             <p className="font-semibold text-[#2a241f]">{user.name || "-"}</p>
                             {isSelf ? (
                               <span className="mt-2 inline-flex rounded-full border border-[#eadfd3] bg-[#f8f4ef] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6f6255]">
-                                To Ty
+                                {t("settings.users.list.you")}
                               </span>
                             ) : null}
                           </div>
@@ -598,7 +616,9 @@ export default function SettingsUsersPage() {
                     <div className="min-w-0 space-y-2">
                       <div className="flex flex-wrap gap-2">
                         {permissionLabelsList.length === 0 ? (
-                          <span className="text-xs text-[#8d7b68]">Brak</span>
+                          <span className="text-xs text-[#8d7b68]">
+                            {t("settings.users.list.permissionsEmpty")}
+                          </span>
                         ) : (
                           <>
                             {visiblePermissions.map((label) => (
@@ -630,7 +650,7 @@ export default function SettingsUsersPage() {
                           onClick={() => canUpdateUsers && startEdit(user)}
                           disabled={!canUpdateUsers}
                         >
-                          Zmien
+                          {t("common.edit")}
                         </button>
                         <button
                           type="button"
@@ -642,11 +662,11 @@ export default function SettingsUsersPage() {
                           onClick={() => requestDelete(user)}
                           disabled={!canRemoveUsers || isSelf}
                         >
-                          Usun
+                          {t("common.delete")}
                         </button>
                       </div>
                       <span className="text-[10px] uppercase tracking-[0.2em] text-[#8d7b68]">
-                        {new Date(user.createdAt).toLocaleDateString("pl-PL")}
+                        {new Date(user.createdAt).toLocaleDateString(locale)}
                       </span>
                     </div>
                   </div>
@@ -664,13 +684,13 @@ export default function SettingsUsersPage() {
                 />
                 <div className="relative w-full max-w-md rounded-2xl border border-[#eadfd3] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(60,40,20,0.6)]">
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-                    Potwierdzenie
+                    {t("settings.users.delete.label")}
                   </p>
                   <h3 className="mt-2 text-xl font-semibold text-[#2a241f]">
-                    Usun konto uzytkownika
+                    {t("settings.users.delete.title")}
                   </h3>
                   <p className="mt-2 text-sm text-[#6f6255]">
-                    Czy na pewno chcesz usunac konto{" "}
+                    {t("settings.users.delete.prompt")} {" "}
                     <span className="font-semibold text-[#2a241f]">
                       {deleteCandidate.email}
                     </span>
@@ -682,14 +702,14 @@ export default function SettingsUsersPage() {
                       className="rounded-full border border-[#d7c8b7] px-4 py-2 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
                       onClick={() => setDeleteCandidate(null)}
                     >
-                      Anuluj
+                      {t("common.cancel")}
                     </button>
                     <button
                       type="button"
                       className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 shadow-sm transition hover:border-red-400"
                       onClick={confirmDelete}
                     >
-                      Potwierdz usuniecie
+                      {t("settings.users.delete.confirm")}
                     </button>
                   </div>
                 </div>

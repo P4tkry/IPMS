@@ -29,7 +29,7 @@ This document summarizes the main data models and their intent.
 
 ## Project
 - Purpose: Core project entity.
-- Key fields: `name`, `description`, `logoUrl`.
+- Key fields: `name`, `description`, `logo`.
 - Relations:
   - `leader` (single `User`)
   - `members` (many `User`)

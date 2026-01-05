@@ -33,6 +33,7 @@ model User {
   accounts        Account[]
   sessions        Session[]
   Invite          Invite[]
+  feedbacks       Feedback[]
 }
 
 model Account {
@@ -102,10 +103,28 @@ model Project {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  name        String
+  isDraft     Boolean  @default(false)
+  tokens      Int      @default(10000)
+  name        String?
+  category    String?
+  goal        String?
+  justification String?
+  mvp         String[] @default([])
+  kpis        String[] @default([])
+  milestones  String[] @default([])
+  chances     String[] @default([])
+  threats     String[] @default([])
+  terms       Json?
+  stakeholders String? @map("audience")
+  stakeholderEntries Json?
+  inScope     String[] @default([])
+  outScope    String[] @default([])
+  peopleHighAvailability Int?
+  peopleLowAvailability  Int?
+  budget      Int?
   leaderId    String
   description String?
-  logoUrl     String?
+  logo        String?  @map("logoUrl")
   leader      User     @relation("ProjectLeader", fields: [leaderId], references: [id])
   members     User[]   @relation("ProjectMembers")
 
@@ -151,4 +170,20 @@ model CareerEntry {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String?
+  email     String?
+  category  String?
+  message   String
+  page      String?
+  userAgent String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
 }

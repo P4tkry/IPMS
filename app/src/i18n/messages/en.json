@@ -1,0 +1,975 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "logout": "Sign out",
+    "login": "Sign in"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "noData": "No data",
+    "loading": "Loading...",
+    "remove": "Remove",
+    "saveChanges": "Save changes",
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "open": "Open",
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add"
+  },
+  "dashboard": {
+    "badge": "Dashboard",
+    "title": "Welcome to IPMS",
+    "subtitle": "This is your panel. Below are the logged-in user details.",
+    "userLabel": "User",
+    "id": "Id",
+    "name": "Name",
+    "email": "Email",
+    "emailVerified": "Email verified"
+  },
+  "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full name",
+      "confirmPassword": "Confirm password"
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email.",
+      "emailRequired": "Email is required.",
+      "passwordRequired": "Password is required.",
+      "passwordMin": "Password must be at least 8 characters.",
+      "passwordsMismatch": "Passwords must match.",
+      "confirmPasswordRequired": "Confirm your password.",
+      "nameRequired": "Full name is required."
+    },
+    "login": {
+      "badge": "Secure workspace",
+      "title": "Sign in to IPMS",
+      "subtitle": "Use your account credentials to access the panel.",
+      "notice": "Sign-in is available only for account holders. If you don't have access, contact the administrator.",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "help": "Trouble signing in? Contact your system administrator.",
+      "errorGeneric": "Could not sign in."
+    },
+    "register": {
+      "badge": "Registration",
+      "title": "Create your IPMS account",
+      "subtitle": "Complete registration based on your invitation.",
+      "loading": "Loading invitation...",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "missingToken": "Invitation token is missing.",
+      "invalidInvite": "Invalid invitation.",
+      "createFailed": "Could not create the account."
+    }
+  },
+  "settings": {
+    "badge": "Settings",
+    "title": "Settings",
+    "subtitle": "Manage your profile and organization access.",
+    "workspace": "Workspace",
+    "sections": "Sections",
+    "accountTab": "My account",
+    "usersTab": "User accounts",
+    "account": {
+      "badge": "My account",
+      "title": "User profile",
+      "subtitle": "Update your name and profile description.",
+      "photoAlt": "Profile photo",
+      "photoTitle": "Profile photo",
+      "photoHint": "PNG/JPG up to 5MB. Visible in your profile.",
+      "photoUploading": "Uploading...",
+      "photoChange": "Change photo",
+      "fields": {
+        "fullName": "Full name",
+        "bio": "Bio"
+      },
+      "profile": {
+        "title": "Personal profile",
+        "subtitle": "Add tags with Enter or comma.",
+        "hobbies": "Hobbies",
+        "hobbiesPlaceholder": "e.g. running",
+        "strengths": "Strengths",
+        "strengthsPlaceholder": "e.g. analytics",
+        "weaknesses": "Weaknesses",
+        "weaknessesPlaceholder": "e.g. communication"
+      },
+      "career": {
+        "title": "Career",
+        "subtitle": "Add employment history entries.",
+        "add": "Add entry",
+        "empty": "No career entries.",
+        "start": "Start",
+        "position": "Position",
+        "company": "Company",
+        "duration": "Duration",
+        "positionPlaceholder": "e.g. Senior Frontend",
+        "companyPlaceholder": "e.g. Acme",
+        "durationPlaceholder": "e.g. 2 years"
+      },
+      "social": {
+        "title": "Social links",
+        "subtitle": "Add profile links. They will be visible in your profile.",
+        "add": "Add",
+        "empty": "No links added.",
+        "platform": "Platform",
+        "link": "Link",
+        "linkPlaceholder": "https://"
+      },
+      "errors": {
+        "loadFailed": "Could not load settings.",
+        "uploadFailed": "Could not upload the photo.",
+        "saveFailed": "Could not save changes."
+      },
+      "success": {
+        "saved": "Changes saved."
+      },
+      "validation": {
+        "nameMax": "Full name can be up to 120 characters.",
+        "nameRequired": "Full name is required.",
+        "bioMax": "Bio can be up to 280 characters.",
+        "hobbyMin": "Hobby cannot be empty.",
+        "hobbyMax": "Hobby max 40 characters.",
+        "hobbyLimit": "Max 20 hobbies.",
+        "strengthMin": "Strength cannot be empty.",
+        "strengthMax": "Strength max 40 characters.",
+        "strengthLimit": "Max 20 strengths.",
+        "weaknessMin": "Weakness cannot be empty.",
+        "weaknessMax": "Weakness max 40 characters.",
+        "weaknessLimit": "Max 20 weaknesses.",
+        "dateFormat": "Use YYYY-MM-DD format.",
+        "startDateRequired": "Start date is required.",
+        "positionRequired": "Position is required.",
+        "companyRequired": "Company name is required.",
+        "durationRequired": "Duration is required.",
+        "platformRequired": "Select a platform.",
+        "urlInvalid": "Enter a valid link.",
+        "urlRequired": "Link is required."
+      }
+    },
+    "users": {
+      "badge": "All accounts",
+      "title": "Account management",
+      "subtitle": "List of all users in the organization.",
+      "count": "accounts",
+      "errors": {
+        "loadFailed": "Could not load settings.",
+        "usersFailed": "Could not load account list.",
+        "updateFailed": "Could not save changes.",
+        "deleteFailed": "Could not delete the account."
+      },
+      "invites": {
+        "label": "Invitations",
+        "subtitle": "Generate a registration link for a new user.",
+        "badge": "Create users",
+        "nameLabel": "Full name",
+        "emailLabel": "Email",
+        "generate": "Generate link",
+        "generating": "Generating...",
+        "copy": "Copy link",
+        "missing": "Fill in name and email.",
+        "generateFailed": "Could not generate the link.",
+        "success": "Invitation link generated.",
+        "copied": "Link copied.",
+        "copyFailed": "Could not copy the link.",
+        "noAccess": "You do not have permission to create accounts."
+      },
+      "permissions": {
+        "selected": "selected",
+        "placeholder": "Select permissions",
+        "search": "Search permissions...",
+        "empty": "No results.",
+        "active": "Selected"
+      },
+      "list": {
+        "label": "User list",
+        "search": "Search by name or email",
+        "loading": "Loading list...",
+        "empty": "No users to display.",
+        "headers": {
+          "user": "User",
+          "email": "Email",
+          "permissions": "Permissions",
+          "actions": "Actions"
+        },
+        "permissionsLabel": "Permissions",
+        "permissionsEmpty": "None",
+        "you": "You"
+      },
+      "delete": {
+        "label": "Confirmation",
+        "title": "Delete user account",
+        "prompt": "Are you sure you want to delete the account",
+        "confirm": "Confirm deletion"
+      }
+    }
+  },
+  "home": {
+    "badge": "Launching in Q1 2026",
+    "title": "Intelligent Project Management Software",
+    "subtitle": "Align strategy, execution, and reporting in one workspace. IPMS keeps every initiative, roadmap, and delivery team in lockstep so you can move fast without losing clarity.",
+    "primaryCta": "Request demo",
+    "secondaryCta": "View roadmap",
+    "highlights": {
+      "portfolio": "Unified portfolio views",
+      "risk": "AI-driven risk insights",
+      "dashboards": "Real-time exec dashboards"
+    },
+    "signal": {
+      "label": "Live signal",
+      "title": "Portfolio Pulse",
+      "programHealth": "Program health",
+      "programChange": "+12%",
+      "activeValue": "38",
+      "activeLabel": "Active initiatives",
+      "deliveryValue": "92%",
+      "deliveryLabel": "Delivery on track",
+      "riskValue": "4.7d",
+      "riskLabel": "Avg. risk alert"
+    },
+    "today": {
+      "title": "Today",
+      "summary": "6 milestones are ahead of plan. 2 need executive attention."
+    },
+    "sections": {
+      "plan": {
+        "label": "Plan",
+        "title": "Strategic alignment",
+        "body": "Tie every initiative to objectives with clear ownership and impact tracking."
+      },
+      "execute": {
+        "label": "Execute",
+        "title": "Momentum visibility",
+        "body": "Surface blockers early with live signals and automated status rollups."
+      },
+      "report": {
+        "label": "Report",
+        "title": "Executive-ready",
+        "body": "Build board-ready narratives with dashboards tailored to every stakeholder."
+      }
+    }
+  },
+  "project": {
+    "create": {
+      "badge": "Create project",
+      "title": "Create a new project",
+        "subtitle": "Enter the basic project information.",
+        "progress": {
+          "label": "Progress"
+        },
+        "summary": {
+          "title": "Summary",
+          "subtitle": "Review",
+          "description": "Make sure the data is complete and accurate before saving.",
+          "section": "Project summary",
+          "confirm": "Save project"
+        },
+      "noPermission": "You do not have permission to create projects.",
+      "createDraft": "Create project",
+      "creatingDraft": "Creating...",
+        "success": {
+          "label": "Success",
+          "title": "Project has been created",
+          "subtitle": "You can now start working on the project.",
+          "cta": "Go to project panel",
+          "downloadCard": "Download project card (PDF)",
+          "downloadingCard": "Preparing project card..."
+        },
+      "intro": {
+        "start": {
+          "label": "Start",
+          "title": "Start",
+          "line1": "You are about to create a new project.",
+          "line2": "We'll guide you step by step through a short series of questions.",
+          "line3": "The questions will be tailored to your methodology and help you:",
+          "line4": "While answering, a virtual assistant will be available to explain each topic.",
+          "line5": "A good first step is to download the PDF form and review it with the team.",
+          "download": "Download form (PDF)",
+          "downloading": "Generating PDF...",
+          "list": {
+            "goal": "define the project goal clearly",
+            "scope": "define scope and outcomes",
+            "plan": "prepare strong foundations for planning and delivery"
+          }
+        },
+        "criteria": {
+          "label": "Project criteria",
+          "title": "Is this a project?",
+          "subtitle": "Not everything is a project. Make sure your initiative meets the requirements below."
+        }
+      },
+      "criteria": {
+        "goal": {
+          "title": "Goal",
+          "text": "A project has a clear end result, so it is known what exactly will be achieved."
+        },
+        "time": {
+          "title": "Temporariness",
+          "text": "A project has a start and an end, so it is not continuous or routine work."
+        },
+        "unique": {
+          "title": "Uniqueness",
+          "text": "A project is unique because its outcome or delivery method is one-off in the given context."
+        },
+        "scope": {
+          "title": "Scope of work",
+          "text": "A project has a defined scope so you know what is in and what is out."
+        },
+        "constraints": {
+          "title": "Constraints",
+          "text": "A project is delivered within constraints of time, budget, and resources."
+        },
+        "team": {
+          "title": "Team / responsibility",
+          "text": "A project has a person or team responsible for delivery and results."
+        }
+      },
+      "steps": {
+        "name": "Project name",
+        "category": "Project category",
+        "vision": "Vision",
+        "goal": "Project goal",
+        "justification": "Project justification",
+        "direction": "Direction",
+        "mvp": "MVP",
+        "kpi": "KPI",
+        "milestones": "Milestones",
+        "resources": "Resources",
+        "chances": "Opportunities",
+        "threats": "Threats",
+        "terms": "Dates",
+        "wrapup": "Wrap-up",
+        "stakeholders": "Stakeholders",
+        "scope": "Project scope",
+        "people": "People resources",
+        "budget": "Budget",
+        "outcome": "Project outcome"
+      },
+      "print": {
+        "kicker": "Discussion form",
+        "title": "Project form",
+        "description": "This form helps structure the key project decisions.",
+        "subtitle": "Print this document and fill it out during your team session.",
+        "sections": {
+          "basics": "Basics",
+          "vision": "Vision",
+          "direction": "Direction",
+          "resources": "Resources",
+          "wrapup": "Wrap-up"
+        },
+        "labels": {
+          "name": "Project name",
+          "category": "Project category",
+          "goal": "Project goal",
+          "outcome": "Project outcome",
+          "stakeholders": "Stakeholders",
+          "justification": "Project justification",
+          "mvp": "MVP",
+          "scopeIn": "Scope (in scope)",
+          "scopeOut": "Out of scope",
+          "kpi": "KPI",
+          "milestones": "Milestones",
+          "people": "People resources",
+          "budget": "Total budget",
+          "chances": "Opportunities",
+          "threats": "Threats",
+          "terms": "Dates (date + description)"
+        }
+      },
+      "questions": {
+        "name": "What working name best describes the project?",
+        "category": "What area or theme best fits this project?",
+        "goal": "What specific, measurable goal do you want to achieve?",
+        "outcome": "What tangible outcome should be ready at the end?",
+        "stakeholders": "Who are the stakeholders and what is their impact or interest?",
+        "justification": "What need or problem does the project address?",
+        "mvp": "What is the minimum essential scope of the project?",
+        "scopeIn": "What is included in the project scope?",
+        "scopeOut": "What is explicitly out of scope?",
+        "kpi": "Which indicators will show progress?",
+        "milestones": "Which key milestones will confirm progress?",
+        "people": "How many people are realistically available to work?",
+        "budget": "What is the realistic total budget?",
+        "chances": "What could help the project succeed?",
+        "threats": "What could make the project harder to deliver?",
+        "terms": "What are the key dates and what do they mean?"
+      },
+      "expert": {
+        "label": "Expert insight"
+      },
+      "autofill": {
+        "label": "Autofill",
+        "action": "Autofill",
+        "loading": "Autofilling...",
+        "description": "This step supports automatic suggestions.",
+        "warning": "Generated content is often wrong or incomplete ? review and correct it.",
+        "error": "Could not autofill."
+      },
+
+      "name": {
+        "title": "Project name",
+        "label": "Project name",
+        "validation": {
+          "required": "Project name is required."
+        },
+        "expert": {
+          "body1": "The first element is naming the project. This is not a marketing name, but a working name that clearly describes what the project is and its purpose. A good approach is to use a simple, descriptive phrase, e.g.:",
+          "list1": "Create a cafe website",
+          "list2": "Develop and execute a cafe marketing strategy",
+          "body2": "This keeps the whole team aligned on the goal."
+        }
+      },
+      "category": {
+        "title": "Project category",
+        "label": "Project category",
+        "hint": "Provide the domain or topic, e.g. IT, marketing, event, process, training.",
+        "validation": {
+          "required": "Project category is required."
+        },
+        "expert": {
+          "body": "The category helps you understand the main goal and what the team should focus on. For example, for a concert project the right category is event organization; a ticketing app should not be the main focus."
+        }
+      },
+      "vision": {
+        "interlude": "STAGE",
+        "title": "Vision",
+        "description": "At this stage you will define the vision: the goal, why it exists, the expected outcome, and whose needs it addresses.",
+        "items": {
+          "goal": "Project goal",
+          "reason": "Reason for creation",
+          "outcome": "Effect / outcome",
+          "stakeholders": "Stakeholders"
+        },
+        "next": "Got it, next"
+      },
+      "direction": {
+        "interlude": "STAGE",
+        "title": "Direction",
+        "description": "At this stage you will define the key elements of the project, how progress is checked, and plan the most important moments and milestones.",
+        "items": {
+          "mvp": "MVP / minimum scope",
+          "scope": "Scope (in/out)",
+          "kpi": "KPIs and progress",
+          "milestones": "Milestones"
+        },
+        "next": "Got it, next"
+      },
+      "resources": {
+        "interlude": "STAGE",
+        "title": "Resources",
+        "description": "At this stage you will define the project resources: people, availability, and the budget needed for delivery.",
+        "items": {
+          "people": "People resources",
+          "budget": "Project budget"
+        },
+        "next": "Got it, next"
+      },
+      "chances": {
+        "title": "Project opportunities",
+        "label": "Which elements or factors can help deliver the project?",
+        "hint": "Type an item and press Enter",
+        "validation": {
+          "required": "Add at least one opportunity."
+        },
+        "remove": "Remove item",
+        "empty": "Add factors that can realistically support delivery.",
+        "expert": {
+          "body1": "Opportunities are internal or external factors that can make delivery easier.",
+          "body2": "List what increases the chance of success or speeds up the work.",
+          "examplesTitle": "Opportunity examples",
+          "examples": {
+            "1": "ready data or materials from the business team,",
+            "2": "leadership support and fast decisions,",
+            "3": "access to proven vendors or tools."
+          }
+        }
+      },
+      "threats": {
+        "title": "Project threats",
+        "label": "Which elements or factors can make delivery harder?",
+        "hint": "Type an item and press Enter",
+        "validation": {
+          "required": "Add at least one threat."
+        },
+        "remove": "Remove item",
+        "empty": "Add factors that can slow down or complicate delivery.",
+        "expert": {
+          "body1": "Threats are risks that can delay the project or reduce the quality of the outcome.",
+          "body2": "List realistic risks that should be monitored and mitigated.",
+          "examplesTitle": "Threat examples",
+          "examples": {
+            "1": "lack of availability of key team members,",
+            "2": "vendor or subcontractor delays,",
+            "3": "business priorities changing mid-project."
+          }
+        }
+      },
+      "terms": {
+        "title": "Project dates",
+        "label": "Dates",
+        "hint": "e.g. requirements sign-off, kickoff workshop, MVP release",
+        "validation": {
+          "required": "Add at least one date."
+        },
+        "remove": "Remove date",
+        "empty": "Add key dates with a short description.",
+        "expert": {
+          "body1": "Dates describe key moments that affect how the project is delivered.",
+          "body2": "Pick the dates that set the pace of work or require stakeholder decisions.",
+          "examplesTitle": "Date examples",
+          "examples": {
+            "1": "2026-02-01 – requirements analysis complete,",
+            "2": "2026-03-15 – prototype review with stakeholders,",
+            "3": "2026-05-20 – MVP release."
+          }
+        }
+      },
+      "wrapup": {
+        "interlude": "STAGE",
+        "title": "Wrap-up",
+        "description": "At this stage you will close the planning by confirming timelines and reviewing opportunities and threats.",
+        "items": {
+          "terms": "Project timelines",
+          "chances": "Opportunities",
+          "threats": "Threats"
+        },
+        "next": "Got it, next"
+      },
+      "mvp": {
+        "title": "MVP",
+        "label": "What must be built for sure?",
+        "hint": "Type an item and press Enter",
+        "validation": {
+          "required": "MVP description is required."
+        },
+        "remove": "Remove item",
+        "empty": "Add the first MVP items to outline the minimum required.",
+        "expert": {
+          "body1": "MVP is the minimum set of elements the project needs to deliver its core function.",
+          "body2": "Choose only what is absolutely necessary to validate value and measure progress.",
+          "examplesTitle": "MVP examples",
+          "examples": {
+            "1": "request form + handling panel (no automation or integrations),",
+            "2": "simple landing with signup + manual registration handling,",
+            "3": "basic workflow in an internal tool without reports or analytics."
+          }
+        }
+      },
+      "goal": {
+        "title": "Project goal",
+        "label": "Describe a concrete, measurable goal you are pursuing in this project.",
+        "hint": "e.g. improve the effectiveness of identifying infrastructure issues in the city",
+        "validation": {
+          "required": "Project goal is required."
+        },
+        "expert": {
+          "body": "The project goal clearly defines what area or problem will change as a result of the project. It should be unambiguous, precise, and free of vague or conflicting wording.",
+          "projectLabel": "Project",
+          "projectText": "What you deliver: the initiative, actions, product, or service.",
+          "goalLabel": "Goal",
+          "goalText": "Why you do it: the measurable change you want to achieve."
+        },
+        "examples": {
+          "goodTitle": "✅ Examples of well-defined project goals",
+          "good": {
+            "1": "Public infrastructure issue reporting system - improve identification of infrastructure problems in the city.",
+            "2": "Medical appointment booking app - reduce scheduling time in public health clinics.",
+            "3": "E-learning platform - ensure continuous access to learning materials.",
+            "4": "Waste management system - improve municipal waste segregation effectiveness."
+          },
+          "badTitle": "❌ Examples of poorly defined project goals",
+          "bad": {
+            "1": "City app - improve quality of life for residents.",
+            "2": "IT system - improve many processes.",
+            "3": "Online platform - a modern solution for users."
+          }
+        }
+      },
+      "outcome": {
+        "title": "Project outcome",
+        "label": "What will be the product/result of your project?",
+        "hint": "e.g. a ready app for handling customer requests.",
+        "validation": {
+          "required": "Project outcome is required."
+        },
+        "expert": {
+          "body1": "The outcome is a concrete, measurable, tangible end result ready to present, hand over, or implement.",
+          "body2": "Describe exactly what will be ready after completion. Do not describe actions or methods - focus on the end result.",
+          "body3": "The outcome should be clear, verifiable, and measurable so there is no doubt the project is complete."
+        },
+        "examples": {
+          "title": "Examples",
+          "1": "a working website,",
+          "2": "a delivered event,",
+          "3": "a deployed and documented customer service process,",
+          "4": "a ready application or IT system."
+        }
+      },
+      "justification": {
+        "title": "Project justification",
+        "label": "What problems does the project address? / What need does it arise from?",
+        "hint": "e.g. repeated delays in approval requests between departments.",
+        "expert": {
+          "body1": "The project responds to the concrete needs of a specific audience and addresses real problems they face daily. Its justification is the intent to solve identified difficulties and improve the situation of project participants.",
+          "examplesTitle": "Examples of problems",
+          "examples": {
+            "1": "lack of access to support or services (e.g. limited activity offerings in small towns),",
+            "2": "insufficient competencies (e.g. lack of digital skills),",
+            "3": "difficulties in social or professional activation (e.g. long-term unemployed),",
+            "4": "lack of actions tailored to the specific needs of a given group."
+          }
+        },
+        "validation": {
+          "required": "Project justification is required."
+        }
+      },
+      "scope": {
+        "title": "Project scope",
+        "inLabel": "In scope",
+        "outLabel": "Out of scope",
+        "placeholder": "Type an item and press Enter",
+        "inHint": "What is inside the project scope. Each Enter adds a new item.",
+        "outHint": "What is outside the project scope. Each Enter adds a new item.",
+        "removeTag": "Remove item",
+        "validation": {
+          "required": "Add at least one scope item."
+        },
+        "skip": {
+          "label": "Skip this step",
+          "hint": "You can enable it later."
+        },
+        "expert": {
+          "body1": "The project scope defines which activities and outcomes are the team's responsibility and which are explicitly excluded.",
+          "body2": "A precise scope keeps goals clear, prevents uncontrolled expansion, and makes it easier to track progress and evaluate results.",
+          "exampleTitle": "Example",
+          "exampleProject": "Project: build a company website.",
+          "exampleInTitle": "In scope:",
+          "exampleIn": "design the layout, implement pages (e.g. home, offer, contact), configure a CMS, run functional tests.",
+          "exampleOutTitle": "Out of scope:",
+          "exampleOut": "create marketing content, run ad campaigns, long-term maintenance and updates after project completion."
+        }
+      },
+      "kpi": {
+        "title": "KPI",
+        "label": "How will you measure progress?",
+        "hint": "Type a metric and press Enter",
+        "validation": {
+          "required": "Add at least one KPI."
+        },
+        "remove": "Remove KPI",
+        "empty": "Add indicators that show whether the project is moving in the right direction.",
+        "skip": {
+          "label": "Skip this step",
+          "hint": "You can enable it later."
+        },
+        "expert": {
+          "body1": "KPIs are measurable indicators that show whether the project is on track.",
+          "body2": "Pick only the ones that truly reflect progress and signal you are getting closer to the goal.",
+          "examplesTitle": "KPI examples",
+          "examples": {
+            "1": "response time to a request < 24h,",
+            "2": "monthly active users,",
+            "3": "first-contact resolution rate."
+          }
+        }
+      },
+      "milestones": {
+        "title": "Milestones",
+        "label": "What are the most important elements of the project?",
+        "hint": "Type a milestone and press Enter",
+        "validation": {
+          "required": "Add at least one milestone."
+        },
+        "remove": "Remove milestone",
+        "empty": "Add milestones to capture the key moments and deliverables.",
+        "expert": {
+          "body1": "Milestones highlight the key elements that confirm the project is progressing in the right direction.",
+          "body2": "They should be clear, verifiable, and describe tangible checkpoints, not tasks.",
+          "examplesTitle": "Example milestones",
+          "examples": {
+            "1": "approved project brief and requirements,",
+            "2": "prototype validated with users,",
+            "3": "final solution delivered and accepted."
+          }
+        }
+      },
+      "people": {
+        "title": "People resources",
+        "splitTitle": "Availability split",
+        "splitHint": "Define how many people are often available vs. rarely available on the project.",
+        "highLabel": "High availability",
+        "lowLabel": "Low availability",
+        "expert": {
+          "body1": "People resources are the number of people who can realistically support the project within the planned timeframe.",
+          "body2": "High availability means regular engagement; low availability means occasional support or only in selected stages."
+        },
+        "validation": {
+          "nonNegative": "Value cannot be negative.",
+          "highRequired": "Number of people with high availability is required.",
+          "lowRequired": "Number of people with low availability is required."
+        }
+      },
+      "budget": {
+        "title": "Total budget",
+        "label": "Total budget",
+        "hint": "Enter the planned total budget in PLN, e.g. 5000.",
+        "validation": {
+          "nonNegative": "Budget cannot be negative.",
+          "required": "Project budget is required."
+        },
+        "expert": {
+          "body1": "The total budget is the real cost of delivering all planned activities and resources.",
+          "body2": "Include people costs, tools, materials, vendors, and a buffer for unexpected expenses.",
+          "exampleTitle": "Example",
+          "example": "e.g. total budget PLN 120,000: team 80,000, tools 15,000, vendors 15,000, contingency 10,000."
+        }
+      },
+      "stakeholders": {
+        "title": "Stakeholders",
+        "validation": {
+          "name": "Provide a stakeholder name.",
+          "required": "Add at least one stakeholder."
+        },
+        "expert": {
+          "body1": "No project exists in a vacuum - it always responds to the needs of specific people or groups. Identify stakeholders whose opinions, needs, or decisions can affect delivery.",
+          "body2": "Think about who should be considered during creation, then place them on the map, considering:",
+          "list1": "Power - how important a person's opinion is for success (e.g. decision makers like the CEO).",
+          "list2": "Interest - how much the project addresses real needs and problems of the person or group.",
+          "body3": "Example: for a ticketing system, Customer Service is a key stakeholder because the project addresses their daily problems and their engagement will be high."
+        },
+        "chart": {
+          "title": "Stakeholder map (power - interest)",
+          "subtitle": "Add a stakeholder and then drag them onto the map.",
+          "axis": {
+            "power": "Power ↑",
+            "interest": "Interest →"
+          },
+          "quadrants": {
+            "highLow": "High power / low interest",
+            "highHigh": "High power / high interest",
+            "lowLow": "Low power / low interest",
+            "lowHigh": "Low power / high interest"
+          }
+        },
+        "input": {
+          "label": "Stakeholder name",
+          "placeholder": "Type and press Enter"
+        },
+        "remove": "Remove stakeholder"
+      },
+      "assistant": {
+        "title": "Project assistant",
+        "subtitle": "Learn more",
+        "initial": "Hi! I am the project assistant. How can I help?",
+        "typing": "Assistant is typing...",
+        "placeholder": "Ask a question...",
+        "errorResponse": "Could not get a response. Try again.",
+        "errorConnection": "Could not connect to the assistant. Try again.",
+        "context": {
+          "step": "Step:",
+          "name": "Project name:",
+          "category": "Project category:",
+          "goal": "Project goal:",
+          "justification": "Project justification:",
+          "stakeholders": "Stakeholders:",
+          "interest": "interest",
+          "power": "power",
+          "mvp": "MVP:",
+          "kpis": "KPIs:",
+          "milestones": "Milestones:",
+          "chances": "Opportunities:",
+          "threats": "Threats:",
+          "terms": "Dates:",
+          "inScope": "In scope:",
+          "outScope": "Out of scope:",
+          "highAvailability": "High availability:",
+          "lowAvailability": "Low availability:",
+          "budget": "Budget:",
+          "outcome": "Project outcome:"
+        }
+      },
+      "errors": {
+        "permissions": "Could not load permissions.",
+        "create": "Could not create the project."
+      }
+    },
+    "view": {
+      "loading": "Loading project...",
+      "errors": {
+        "loadFailed": "Could not load the project."
+      },
+      "accessDenied": {
+        "label": "Access denied",
+        "title": "Project not found or you don't have access",
+        "hint": "Check the link or ask the project lead for an invite."
+      },
+      "header": {
+        "projects": "Projects",
+        "untitled": "Untitled project",
+        "draft": "Draft",
+        "noDescription": "No project description. Add context so the team can onboard faster.",
+        "lastUpdated": "Last update:"
+      },
+      "overview": {
+        "pulseLabel": "Pulse",
+        "title": "Project status",
+        "statusDraft": "Draft",
+        "statusActive": "Active",
+        "summary": "Your team is closing the sprint and maintaining steady flow. Focus on blockers and dependencies before the next release.",
+        "priorities": {
+          "label": "Priorities",
+          "title": "Top initiatives",
+          "items": {
+            "dependencies": "Close critical sprint dependencies",
+            "roadmap": "Refine Q2 roadmap",
+            "qa": "Stabilize QA pipeline",
+            "report": "Prepare stakeholder report"
+          },
+          "retro": "Next retrospective: 14:00, Friday."
+        }
+      },
+      "metrics": {
+        "open": {
+          "label": "Open",
+          "value": "42",
+          "detail": "-12% WoW"
+        },
+        "inProgress": {
+          "label": "In progress",
+          "value": "13",
+          "detail": "+3 since yesterday"
+        },
+        "blockers": {
+          "label": "Blockers",
+          "value": "4",
+          "detail": "Escalation needed"
+        },
+        "avgTime": {
+          "label": "Avg time",
+          "value": "3.8d",
+          "detail": "Target 4.5d"
+        }
+      },
+      "activity": {
+        "insights": {
+          "label": "Insights",
+          "title": "Project health",
+          "risk": {
+            "label": "Risk",
+            "value": "Medium"
+          },
+          "scope": {
+            "label": "Scope",
+            "value": "+12%"
+          },
+          "velocity": {
+            "label": "Velocity",
+            "value": "Stable"
+          }
+        },
+        "upcoming": {
+          "label": "Upcoming",
+          "title": "Timeline"
+        },
+        "timeline": {
+          "items": {
+            "demo": "Client demo - Monday 10:00",
+            "planning": "Sprint planning - Tuesday 14:00",
+            "release": "Release candidate - Friday 16:00"
+          }
+        },
+        "feed": {
+          "label": "Activity",
+          "title": "Latest events",
+          "items": {
+            "review": "PR #128 bumped to review",
+            "priority": "New decision: critical priority",
+            "sprint": "Added 3 tasks to sprint",
+            "blocker": "API blocker closed"
+          },
+          "times": {
+            "review": "5 min ago",
+            "priority": "45 min ago",
+            "sprint": "2 hours ago",
+            "blocker": "Yesterday"
+          }
+        }
+      },
+      "board": {
+        "label": "Board",
+        "title": "Board preview",
+        "sprint": "Sprint 6",
+        "columns": {
+          "todo": {
+            "title": "To do",
+            "items": {
+              "onboarding": "New client onboarding",
+              "risk": "MVP risk analysis",
+              "requirements": "Collect analytics requirements"
+            }
+          },
+          "inProgress": {
+            "title": "In progress",
+            "items": {
+              "backlog": "Backlog view design",
+              "done": "Define Done definition",
+              "api": "Project API refactor"
+            }
+          },
+          "review": {
+            "title": "Review",
+            "items": {
+              "e2e": "Registration E2E tests",
+              "oauth": "OAuth integration"
+            }
+          }
+        }
+      },
+      "sidebar": {
+        "project": "Project",
+        "untitled": "Untitled project",
+        "navigation": "Navigation",
+        "live": "Live",
+        "statusLabel": "Status",
+        "statusTitle": "Sprint 6 in progress",
+        "statusDetail": "8 tasks in progress, 4 in review.",
+        "nav": {
+          "overview": "Overview",
+          "backlog": "Backlog",
+          "board": "Board",
+          "timeline": "Timeline",
+          "reports": "Reports",
+          "people": "People",
+          "settings": "Settings"
+        }
+      },
+      "settings": {
+        "badge": "Project settings",
+        "title": "Project settings",
+        "subtitle": "Manage core data, members, and integrations for the project.",
+        "projectLabel": "Project",
+        "projectId": "ID:",
+        "nameLabel": "Project name",
+        "descriptionLabel": "Project description",
+        "archive": "Archive project",
+        "members": {
+          "title": "Members",
+          "subtitle": "Add and manage team roles in the next iteration.",
+          "comingSoon": "Coming soon: roles, invitations, and permission levels."
+        },
+        "integrations": {
+          "title": "Integrations",
+          "subtitle": "Connect the project with repositories and calendars.",
+          "comingSoon": "Coming soon: GitHub, Slack, Jira import."
+        }
+      }
+    }
+  }
+}

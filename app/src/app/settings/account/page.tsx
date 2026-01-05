@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "@/lib/auth-client";
 import { Globe, Github, Linkedin, Plus, Twitter, X } from "lucide-react";
+import { useI18n } from "@/i18n/useI18n";
 
 
 type SettingsForm = {
@@ -110,6 +111,7 @@ function TagInput({ id, label, placeholder, value, error, onChange, onBlur }: Ta
 export default function SettingsAccountPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -175,32 +177,51 @@ export default function SettingsAccountPage() {
   };
   const validationSchema = Yup.object({
     name: Yup.string()
-      .max(120, "Imie i nazwisko moze miec max 120 znakow.")
-      .required("Imie i nazwisko jest wymagane."),
-    bio: Yup.string().max(280, "Opis moze miec max 280 znakow."),
+      .max(120, t("settings.account.validation.nameMax"))
+      .required(t("settings.account.validation.nameRequired")),
+    bio: Yup.string().max(280, t("settings.account.validation.bioMax")),
     hobbies: Yup.array()
-      .of(Yup.string().trim().min(1, "Hobby nie moze byc puste.").max(40, "Hobby max 40 znakow."))
-      .max(20, "Max 20 hobby."),
+      .of(
+        Yup.string()
+          .trim()
+          .min(1, t("settings.account.validation.hobbyMin"))
+          .max(40, t("settings.account.validation.hobbyMax")),
+      )
+      .max(20, t("settings.account.validation.hobbyLimit")),
     strengths: Yup.array()
-      .of(Yup.string().trim().min(1, "Mocna strona nie moze byc pusta.").max(40, "Mocna strona max 40 znakow."))
-      .max(20, "Max 20 mocnych stron."),
+      .of(
+        Yup.string()
+          .trim()
+          .min(1, t("settings.account.validation.strengthMin"))
+          .max(40, t("settings.account.validation.strengthMax")),
+      )
+      .max(20, t("settings.account.validation.strengthLimit")),
     weaknesses: Yup.array()
-      .of(Yup.string().trim().min(1, "Slaba strona nie moze byc pusta.").max(40, "Slaba strona max 40 znakow."))
-      .max(20, "Max 20 slabosci."),
+      .of(
+        Yup.string()
+          .trim()
+          .min(1, t("settings.account.validation.weaknessMin"))
+          .max(40, t("settings.account.validation.weaknessMax")),
+      )
+      .max(20, t("settings.account.validation.weaknessLimit")),
     career: Yup.array().of(
       Yup.object({
         startDate: Yup.string()
-          .matches(/^\d{4}-\d{2}-\d{2}$/, "Podaj date w formacie YYYY-MM-DD.")
-          .required("Data rozpoczecia jest wymagana."),
-        position: Yup.string().trim().required("Stanowisko jest wymagane."),
-        companyName: Yup.string().trim().required("Nazwa firmy jest wymagana."),
-        duration: Yup.string().trim().required("Czas pracy jest wymagany."),
+          .matches(/^\d{4}-\d{2}-\d{2}$/, t("settings.account.validation.dateFormat"))
+          .required(t("settings.account.validation.startDateRequired")),
+        position: Yup.string().trim().required(t("settings.account.validation.positionRequired")),
+        companyName: Yup.string()
+          .trim()
+          .required(t("settings.account.validation.companyRequired")),
+        duration: Yup.string().trim().required(t("settings.account.validation.durationRequired")),
       }),
     ),
     socialLinks: Yup.array().of(
       Yup.object({
-        platform: Yup.string().required("Wybierz platforme."),
-        url: Yup.string().url("Podaj poprawny link.").required("Link jest wymagany."),
+        platform: Yup.string().required(t("settings.account.validation.platformRequired")),
+        url: Yup.string()
+          .url(t("settings.account.validation.urlInvalid"))
+          .required(t("settings.account.validation.urlRequired")),
       }),
     ),
   });
@@ -220,7 +241,7 @@ export default function SettingsAccountPage() {
         const response = await fetch("/api/settings");
         const payload = await response.json();
         if (!response.ok) {
-          setError(payload?.message || "Nie udalo sie pobrac ustawien.");
+          setError(payload?.message || t("settings.account.errors.loadFailed"));
           return;
         }
         formikRef.current?.setValues({
@@ -249,7 +270,8 @@ export default function SettingsAccountPage() {
         setCanUploadPhotos(permissions.includes("UPLOAD_PHOTOS"));
         didLoad.current = true;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Nie udalo sie pobrac ustawien.";
+        const message =
+          err instanceof Error ? err.message : t("settings.account.errors.loadFailed");
         setError(message);
       } finally {
         setIsLoading(false);
@@ -272,12 +294,13 @@ export default function SettingsAccountPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        setUploadError(payload?.message || "Nie udalo sie przeslac zdjecia.");
+        setUploadError(payload?.message || t("settings.account.errors.uploadFailed"));
         return;
       }
       setProfileImage(payload?.url || null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nie udalo sie przeslac zdjecia.";
+      const message =
+        err instanceof Error ? err.message : t("settings.account.errors.uploadFailed");
       setUploadError(message);
     } finally {
       setIsUploading(false);
@@ -297,27 +320,31 @@ export default function SettingsAccountPage() {
       <CardContent className="space-y-6 p-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-            My account
+            {t("settings.account.badge")}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-[#2a241f]">Profil uzytkownika</h2>
-          <p className="mt-2 text-sm text-[#6f6255]">
-            Zaktualizuj imie i nazwisko oraz opis profilu.
-          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-[#2a241f]">
+            {t("settings.account.title")}
+          </h2>
+          <p className="mt-2 text-sm text-[#6f6255]">{t("settings.account.subtitle")}</p>
         </div>
 
-        {isLoading ? <p className="text-sm text-[#6f6255]">Ladowanie...</p> : null}
+        {isLoading ? <p className="text-sm text-[#6f6255]">{t("common.loading")}</p> : null}
         <section className="flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border border-[#eadfd3] bg-[#f8f4ef]">
-              {profileImage ? <AvatarImage src={profileImage} alt="Profile image" /> : null}
+              {profileImage ? (
+                <AvatarImage src={profileImage} alt={t("settings.account.photoAlt")} />
+              ) : null}
               <AvatarFallback className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6f6255]">
                 {getInitials(formikRef.current?.values.name || "", session?.user?.email || "")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-semibold text-[#2a241f]">Zdjecie profilowe</p>
+              <p className="text-sm font-semibold text-[#2a241f]">
+                {t("settings.account.photoTitle")}
+              </p>
               <p className="mt-1 text-xs text-[#6f6255]">
-                PNG/JPG do 5MB. Widoczne w profilu.
+                {t("settings.account.photoHint")}
               </p>
             </div>
           </div>
@@ -329,7 +356,9 @@ export default function SettingsAccountPage() {
                   : "border-[#eadfd3] bg-[#f8f4ef] text-[#b3a79b]"
               }`}
             >
-              {isUploading ? "Przesylanie..." : "Zmien zdjecie"}
+              {isUploading
+                ? t("settings.account.photoUploading")
+                : t("settings.account.photoChange")}
               <input
                 type="file"
                 accept="image/*"
@@ -369,12 +398,13 @@ export default function SettingsAccountPage() {
               });
               const payload = await response.json();
               if (!response.ok) {
-                setError(payload?.message || "Nie udalo sie zapisac zmian.");
+                setError(payload?.message || t("settings.account.errors.saveFailed"));
                 return;
               }
-              setSuccess("Zapisano zmiany.");
+              setSuccess(t("settings.account.success.saved"));
             } catch (err) {
-              const message = err instanceof Error ? err.message : "Nie udalo sie zapisac zmian.";
+              const message =
+                err instanceof Error ? err.message : t("settings.account.errors.saveFailed");
               setError(message);
             }
           }}
@@ -387,7 +417,7 @@ export default function SettingsAccountPage() {
                     className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7b68]"
                     htmlFor="name"
                   >
-                    Imie i nazwisko
+                    {t("settings.account.fields.fullName")}
                   </label>
                   <Field
                     id="name"
@@ -403,7 +433,7 @@ export default function SettingsAccountPage() {
                     className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7b68]"
                     htmlFor="bio"
                   >
-                    Opis
+                    {t("settings.account.fields.bio")}
                   </label>
                   <Field
                     as="textarea"
@@ -421,17 +451,17 @@ export default function SettingsAccountPage() {
               <section className="space-y-4 rounded-2xl border border-[#eadfd3] bg-[#fcfaf7] p-5 shadow-[0_16px_40px_-35px_rgba(60,40,20,0.45)]">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-                    Profil osobisty
+                    {t("settings.account.profile.title")}
                   </p>
                   <p className="mt-1 text-sm text-[#6f6255]">
-                    Dodawaj tagi klawiszem Enter lub przecinkiem.
+                    {t("settings.account.profile.subtitle")}
                   </p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <TagInput
                     id="hobbies"
-                    label="Hobby"
-                    placeholder="np. bieganie"
+                    label={t("settings.account.profile.hobbies")}
+                    placeholder={t("settings.account.profile.hobbiesPlaceholder")}
                     value={values.hobbies}
                     onChange={(next) => setFieldValue("hobbies", next)}
                     onBlur={() => setFieldTouched("hobbies", true)}
@@ -439,8 +469,8 @@ export default function SettingsAccountPage() {
                   />
                   <TagInput
                     id="strengths"
-                    label="Mocne strony"
-                    placeholder="np. analityka"
+                    label={t("settings.account.profile.strengths")}
+                    placeholder={t("settings.account.profile.strengthsPlaceholder")}
                     value={values.strengths}
                     onChange={(next) => setFieldValue("strengths", next)}
                     onBlur={() => setFieldTouched("strengths", true)}
@@ -448,8 +478,8 @@ export default function SettingsAccountPage() {
                   />
                   <TagInput
                     id="weaknesses"
-                    label="Slabe strony"
-                    placeholder="np. komunikacja"
+                    label={t("settings.account.profile.weaknesses")}
+                    placeholder={t("settings.account.profile.weaknessesPlaceholder")}
                     value={values.weaknesses}
                     onChange={(next) => setFieldValue("weaknesses", next)}
                     onBlur={() => setFieldTouched("weaknesses", true)}
@@ -462,10 +492,10 @@ export default function SettingsAccountPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-                      Kariera
+                      {t("settings.account.career.title")}
                     </p>
                     <p className="mt-1 text-sm text-[#6f6255]">
-                      Dodaj wpisy z historii zatrudnienia.
+                      {t("settings.account.career.subtitle")}
                     </p>
                   </div>
                   <button
@@ -479,7 +509,7 @@ export default function SettingsAccountPage() {
                     }
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Dodaj wpis
+                    {t("settings.account.career.add")}
                   </button>
                 </div>
                 <FieldArray
@@ -487,7 +517,9 @@ export default function SettingsAccountPage() {
                   render={(arrayHelpers) => (
                     <div className="space-y-3">
                       {values.career.length === 0 ? (
-                        <p className="text-xs text-[#8d7b68]">Brak wpisow kariery.</p>
+                        <p className="text-xs text-[#8d7b68]">
+                          {t("settings.account.career.empty")}
+                        </p>
                       ) : null}
                       {values.career.map((entry, index) => {
                         const careerErrors =
@@ -515,7 +547,7 @@ export default function SettingsAccountPage() {
                           >
                             <div>
                               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                Start
+                                {t("settings.account.career.start")}
                               </label>
                               <Field
                                 type="date"
@@ -530,12 +562,12 @@ export default function SettingsAccountPage() {
                             </div>
                             <div>
                               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                Stanowisko
+                                {t("settings.account.career.position")}
                               </label>
                               <Field
                                 name={`career.${index}.position`}
                                 className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
-                                placeholder="np. Senior Frontend"
+                                placeholder={t("settings.account.career.positionPlaceholder")}
                               />
                               {careerTouched?.position && careerErrors?.position ? (
                                 <p className="mt-1 text-xs text-red-600">
@@ -545,12 +577,12 @@ export default function SettingsAccountPage() {
                             </div>
                             <div>
                               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                Firma
+                                {t("settings.account.career.company")}
                               </label>
                               <Field
                                 name={`career.${index}.companyName`}
                                 className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
-                                placeholder="np. Acme"
+                                placeholder={t("settings.account.career.companyPlaceholder")}
                               />
                               {careerTouched?.companyName && careerErrors?.companyName ? (
                                 <p className="mt-1 text-xs text-red-600">
@@ -560,12 +592,12 @@ export default function SettingsAccountPage() {
                             </div>
                             <div>
                               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                Czas pracy
+                                {t("settings.account.career.duration")}
                               </label>
                               <Field
                                 name={`career.${index}.duration`}
                                 className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
-                                placeholder="np. 2 lata"
+                                placeholder={t("settings.account.career.durationPlaceholder")}
                               />
                               {careerTouched?.duration && careerErrors?.duration ? (
                                 <p className="mt-1 text-xs text-red-600">
@@ -579,7 +611,7 @@ export default function SettingsAccountPage() {
                                 className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
                                 onClick={() => arrayHelpers.remove(index)}
                               >
-                                Usun
+                                {t("common.remove")}
                               </button>
                             </div>
                           </div>
@@ -594,10 +626,10 @@ export default function SettingsAccountPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8d7b68]">
-                      Social links
+                      {t("settings.account.social.title")}
                     </p>
                     <p className="mt-1 text-sm text-[#6f6255]">
-                      Dodaj linki do profili. Beda widoczne w profilu.
+                      {t("settings.account.social.subtitle")}
                     </p>
                   </div>
                   <button
@@ -611,7 +643,7 @@ export default function SettingsAccountPage() {
                     }
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Dodaj
+                    {t("settings.account.social.add")}
                   </button>
                 </div>
 
@@ -620,7 +652,9 @@ export default function SettingsAccountPage() {
                   render={(arrayHelpers) => (
                     <div className="space-y-3">
                       {values.socialLinks.length === 0 ? (
-                        <p className="text-xs text-[#8d7b68]">Brak dodanych linkow.</p>
+                        <p className="text-xs text-[#8d7b68]">
+                          {t("settings.account.social.empty")}
+                        </p>
                       ) : null}
                       {values.socialLinks.map((link, index) => {
                         const linkErrors =
@@ -646,7 +680,7 @@ export default function SettingsAccountPage() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                  Platforma
+                                  {t("settings.account.social.platform")}
                                 </label>
                                 <span
                                   className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${meta.badge}`}
@@ -668,12 +702,12 @@ export default function SettingsAccountPage() {
                             </div>
                             <div>
                               <label className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8d7b68]">
-                                Link
+                                {t("settings.account.social.link")}
                               </label>
                               <Field
                                 name={`socialLinks.${index}.url`}
                                 className="mt-2 w-full rounded-lg border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm focus:border-[#2a241f]"
-                                placeholder="https://"
+                                placeholder={t("settings.account.social.linkPlaceholder")}
                               />
                               {linkTouched?.url && linkErrors?.url ? (
                                 <p className="mt-1 text-xs text-red-600">{linkErrors.url}</p>
@@ -685,7 +719,7 @@ export default function SettingsAccountPage() {
                                 className="rounded-full border border-[#d7c8b7] px-3 py-1 text-xs text-[#2a241f] shadow-sm transition hover:border-[#2a241f] hover:shadow-md"
                                 onClick={() => arrayHelpers.remove(index)}
                               >
-                                Usun
+                                {t("common.remove")}
                               </button>
                             </div>
                           </div>
@@ -712,7 +746,7 @@ export default function SettingsAccountPage() {
                 className="w-full bg-[#2a241f] text-[#f6efe8] hover:bg-[#3a332c]"
                 disabled={isSubmitting}
               >
-                Zapisz zmiany
+                {t("common.saveChanges")}
               </Button>
             </Form>
           )}
