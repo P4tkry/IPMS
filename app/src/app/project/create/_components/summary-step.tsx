@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   FiAlertTriangle,
   FiCheckCircle,
@@ -14,6 +15,8 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
+import { pdf } from "@react-pdf/renderer";
+import { ProjectCardPdfDocument } from "./project-card-pdf";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/useI18n";
 import NextStepButton from "./next-step-button";
@@ -164,6 +167,76 @@ export default function SummaryStep({
   const { t } = useI18n();
   const fallback = t("common.noData");
   const items = summaryItems(values, fallback, t);
+  const [localDownloading, setLocalDownloading] = useState(false);
+
+  const handleDownloadLocal = async () => {
+    if (localDownloading) return;
+    setLocalDownloading(true);
+    try {
+      const strings = {
+        kicker: t("project.create.print.kicker"),
+        title: t("project.create.summary.title"),
+        subtitle: t("project.create.success.subtitle"),
+        sections: {
+          basics: t("project.create.print.sections.basics"),
+          vision: t("project.create.print.sections.vision"),
+          direction: t("project.create.print.sections.direction"),
+          resources: t("project.create.print.sections.resources"),
+          wrapup: t("project.create.print.sections.wrapup"),
+        },
+        fields: {
+          name: t("project.create.steps.name"),
+          category: t("project.create.steps.category"),
+          goal: t("project.create.steps.goal"),
+          outcome: t("project.create.steps.outcome"),
+          stakeholders: t("project.create.steps.stakeholders"),
+          justification: t("project.create.steps.justification"),
+          scopeIn: t("project.create.scope.inLabel"),
+          scopeOut: t("project.create.scope.outLabel"),
+          kpis: t("project.create.steps.kpi"),
+          milestones: t("project.create.steps.milestones"),
+          chances: t("project.create.steps.chances"),
+          threats: t("project.create.steps.threats"),
+          terms: t("project.create.steps.terms"),
+          peopleHigh: t("project.create.people.highLabel"),
+          peopleLow: t("project.create.people.lowLabel"),
+          budget: t("project.create.steps.budget"),
+        },
+        stakeholdersMap: {
+          axisPower: t("project.create.stakeholders.chart.axis.power"),
+          axisInterest: t("project.create.stakeholders.chart.axis.interest"),
+          quadrants: {
+            highLow: t("project.create.stakeholders.chart.quadrants.highLow"),
+            highHigh: t("project.create.stakeholders.chart.quadrants.highHigh"),
+            lowLow: t("project.create.stakeholders.chart.quadrants.lowLow"),
+            lowHigh: t("project.create.stakeholders.chart.quadrants.lowHigh"),
+          },
+        },
+        empty: t("common.noData"),
+        footer: {
+          poweredBy: t("project.create.print.footer.poweredBy"),
+          dateLabel: t("project.create.print.footer.dateLabel"),
+          signatureLabel: t("project.create.print.footer.signatureLabel"),
+        },
+      };
+
+      const blob = await pdf(
+        <ProjectCardPdfDocument values={values} strings={strings} />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "karta-projektu.pdf";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      // pass
+      // eslint-disable-next-line no-console
+      console.error(e);
+    } finally {
+      setLocalDownloading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col justify-center gap-4 p-5">
