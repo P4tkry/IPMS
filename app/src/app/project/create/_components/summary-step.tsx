@@ -15,7 +15,6 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
-import { pdf } from "@react-pdf/renderer";
 import { ProjectCardPdfDocument } from "./project-card-pdf";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/useI18n";
@@ -221,9 +220,8 @@ export default function SummaryStep({
         },
       };
 
-      const blob = await pdf(
-        <ProjectCardPdfDocument values={values} strings={strings} />,
-      ).toBlob();
+      const { pdf } = await import("@react-pdf/renderer");
+      const blob = await pdf(<ProjectCardPdfDocument values={values} strings={strings} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
