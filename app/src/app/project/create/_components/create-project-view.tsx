@@ -317,6 +317,17 @@ export function CreateProjectView() {
         </Badge>
         <h1 className="text-3xl font-semibold">{t("project.create.title")}</h1>
         <p className="text-sm text-[#6f6255]">{t("project.create.subtitle")}</p>
+        {projectId ? (
+          <div className="rounded-lg border border-[#e7dccf] bg-[#fcfaf7] px-4 py-3 text-sm text-[#5b5044]">
+            <p className="mb-1">{t("project.create.autosave.notice")}</p>
+            <a
+              href={`${pathname}?project_id=${projectId}`}
+              className="font-semibold text-[#2a241f] underline"
+            >
+              {t("project.create.autosave.linkText")}
+            </a>
+          </div>
+        ) : null}
         <Card className="border-[#e2d6c9] bg-white/80 shadow-[0_30px_80px_-40px_rgba(60,40,20,0.45)] backdrop-blur">
           <CardContent className="space-y-6 p-6">
             {isLoading ? <p className="text-sm text-[#6f6255]">{t("common.loading")}</p> : null}

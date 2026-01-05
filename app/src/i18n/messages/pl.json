@@ -352,6 +352,10 @@
         "budget": "Budżet",
         "outcome": "Rezultat projektu"
       },
+      "autosave": {
+        "notice": "Twoja praca jest automatycznie zapisywana po każdym kroku. Możesz wrócić do niej później pod tym linkiem:",
+        "linkText": "Otwórz projekt"
+      },
       "print": {
         "kicker": "Formularz do omówienia",
         "title": "Formularz projektu",

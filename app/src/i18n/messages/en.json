@@ -261,6 +261,10 @@
       "badge": "Create project",
       "title": "Create a new project",
         "subtitle": "Enter the basic project information.",
+        "autosave": {
+          "notice": "Your work is automatically saved after each step. You can return to it later using this link:",
+          "linkText": "Open project"
+        },
         "progress": {
           "label": "Progress"
         },
