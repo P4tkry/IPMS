@@ -40,6 +40,27 @@ const styles = StyleSheet.create({
     borderBottomColor: "#d7c8b7",
     marginTop: 12,
   },
+  footer: {
+    position: "absolute",
+    right: 32,
+    bottom: 20,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  footerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#f59e0b",
+  },
+  footerText: {
+    fontSize: 8,
+    color: "#6f6255",
+    letterSpacing: 0.4,
+  },
   section: {
     marginTop: 16,
   },
@@ -141,6 +162,11 @@ type ProjectCardPdfStrings = {
     };
   };
   empty: string;
+  footer: {
+    poweredBy: string;
+    dateLabel: string;
+    signatureLabel: string;
+  };
 };
 
 const joinOrEmpty = (items: string[], empty: string) =>
@@ -299,6 +325,28 @@ export function ProjectCardPdfDocument({
           <View style={styles.item} wrap={false}>
             <Text style={styles.label}>{strings.fields.terms}</Text>
             <Text style={styles.value}>{formatTerms(values.terms, strings.empty)}</Text>
+          </View>
+        </View>
+
+        {/* Signature/date block */}
+        <View style={{ marginTop: 12 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: "#d7c8b7", marginTop: 12 }} />
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{strings.footer.dateLabel}</Text>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: "#d7c8b7", height: 20 }} />
+            </View>
+            <View style={{ flex: 1, marginLeft: 20 }}>
+              <Text style={styles.label}>{strings.footer.signatureLabel}</Text>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: "#d7c8b7", height: 20 }} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.footer} fixed>
+          <View style={styles.footerRow}>
+            <View style={styles.footerDot} />
+            <Text style={styles.footerText}>{strings.footer.poweredBy}</Text>
           </View>
         </View>
       </Page>

@@ -350,17 +350,6 @@ export function CreateProjectView() {
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-12 rounded-2xl border border-[#d7c8b7] bg-white px-6 text-sm text-[#2a241f]"
-                    onClick={handleDownloadCardPdf}
-                    disabled={!lastSubmitted || isDownloading}
-                  >
-                    {isDownloading
-                      ? t("project.create.success.downloadingCard")
-                      : t("project.create.success.downloadCard")}
-                  </Button>
-                  <Button
-                    type="button"
                     className="h-12 rounded-2xl bg-[#2a241f] px-6 text-sm text-[#f6efe8] shadow-[0_16px_30px_-18px_rgba(42,36,31,0.35)] hover:bg-[#3a332c]"
                     onClick={() => {
                       if (createdProjectId) {
@@ -557,6 +546,8 @@ export function CreateProjectView() {
                         onRegisterStepSetter={(setter) => {
                           formStepSetterRef.current = setter;
                         }}
+                        onDownloadCard={handleDownloadCardPdf}
+                        isDownloading={isDownloading}
                       />
                     </motion.div>
                   ) : null}

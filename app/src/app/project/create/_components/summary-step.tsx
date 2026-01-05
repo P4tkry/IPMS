@@ -27,6 +27,8 @@ type SummaryStepProps = {
   onBack?: () => void;
   onConfirm: () => void;
   isConfirmLoading?: boolean;
+  onDownloadCard?: () => void;
+  isDownloading?: boolean;
 };
 
 const joinOrFallback = (items: string[], fallback: string) => {
@@ -223,11 +225,24 @@ export default function SummaryStep({
         >
           {t("common.back")}
         </Button>
-        <NextStepButton
-          label={t("project.create.summary.confirm")}
-          onClick={onConfirm}
-          isLoading={isConfirmLoading}
-        />
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 rounded-2xl border border-[#d7c8b7] bg-white px-6 text-sm text-[#2a241f]"
+            onClick={onDownloadCard}
+            disabled={!onDownloadCard || isDownloading}
+          >
+            {isDownloading
+              ? t("project.create.success.downloadingCard")
+              : t("project.create.success.downloadCard")}
+          </Button>
+          <NextStepButton
+            label={t("project.create.summary.confirm")}
+            onClick={onConfirm}
+            isLoading={isConfirmLoading}
+          />
+        </div>
       </div>
     </div>
   );

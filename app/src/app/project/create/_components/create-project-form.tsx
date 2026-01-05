@@ -78,6 +78,8 @@ type CreateProjectFormProps = {
       | "budget"
       | "summary"
   ) => void;
+  onDownloadCard?: () => void;
+  isDownloading?: boolean;
 };
 
 export default function CreateProjectForm({
@@ -85,6 +87,8 @@ export default function CreateProjectForm({
   onExit,
   onRegisterStepSetter,
   onStepChange,
+  onDownloadCard,
+  isDownloading,
 }: CreateProjectFormProps) {
   const { t } = useI18n();
   const { error, form, handleCreateProject, patchProject, updateForm } = project;
@@ -789,6 +793,8 @@ export default function CreateProjectForm({
                 onBack={handleSummaryBack}
                 onConfirm={handleSummaryConfirm}
                 isConfirmLoading={isNextLoading}
+                onDownloadCard={onDownloadCard}
+                isDownloading={isDownloading}
               />
             </motion.div>
           ) : null}

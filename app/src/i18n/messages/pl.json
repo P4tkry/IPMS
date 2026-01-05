@@ -385,6 +385,11 @@
           "chances": "Szanse",
           "threats": "Zagrożenia",
           "terms": "Terminy (data + opis)"
+        },
+        "footer": {
+          "poweredBy": "Powered by IPMS",
+          "dateLabel": "Data:",
+          "signatureLabel": "Podpis:"
         }
       },
       "questions": {
