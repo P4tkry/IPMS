@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/i18n/useI18n";
+import { Bell, FolderKanban, LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,9 +67,27 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">{t("nav.settings")}</Link>
+                    <Link href="/notifications" className="flex items-center gap-2">
+                      <Bell className="h-4 w-4" />
+                      {t("nav.notifications")}
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>{t("nav.logout")}</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/project" className="flex items-center gap-2">
+                      <FolderKanban className="h-4 w-4" />
+                      {t("nav.projects")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      {t("nav.settings")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    {t("nav.logout")}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>

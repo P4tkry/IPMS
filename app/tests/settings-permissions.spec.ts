@@ -191,7 +191,7 @@ test("editing a user sends updated permissions", async ({ page }) => {
           id: "u-2",
           name: "Dev User",
           email: "dev@example.com",
-          permissions: received?.permissions ? [],
+          permissions: received?.permissions ?? [],
           createdAt: new Date().toISOString(),
         },
       }),

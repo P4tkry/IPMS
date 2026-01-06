@@ -2,7 +2,10 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "users": "Users",
     "settings": "Settings",
+    "notifications": "Notifications",
+    "projects": "Projects",
     "logout": "Sign out",
     "login": "Sign in"
   },
@@ -387,11 +390,18 @@
           "terms": "Dates (date + description)"
         },
         "footer": {
-          "poweredBy": "Powered by IPMS",
-          "dateLabel": "Date:",
-          "signatureLabel": "Signature:"
-        }
-      },
+        "poweredBy": "Powered by IPMS",
+        "dateLabel": "Date:",
+        "signatureLabel": "Signature:"
+        ,
+        "signDateLabel": "Date & signature"
+      }
+    },
+    "card": {
+      "kicker": "Project card",
+      "title": "Project card",
+      "subtitle": "Share this one-pager with your stakeholders."
+    },
       "questions": {
         "name": "What working name best describes the project?",
         "category": "What area or theme best fits this project?",
@@ -814,169 +824,81 @@
       "errors": {
         "loadFailed": "Could not load the project."
       },
-      "accessDenied": {
-        "label": "Access denied",
-        "title": "Project not found or you don't have access",
-        "hint": "Check the link or ask the project lead for an invite."
-      },
-      "header": {
-        "projects": "Projects",
-        "untitled": "Untitled project",
-        "draft": "Draft",
-        "noDescription": "No project description. Add context so the team can onboard faster.",
-        "lastUpdated": "Last update:"
-      },
-      "overview": {
-        "pulseLabel": "Pulse",
-        "title": "Project status",
-        "statusDraft": "Draft",
-        "statusActive": "Active",
-        "summary": "Your team is closing the sprint and maintaining steady flow. Focus on blockers and dependencies before the next release.",
-        "priorities": {
-          "label": "Priorities",
-          "title": "Top initiatives",
-          "items": {
-            "dependencies": "Close critical sprint dependencies",
-            "roadmap": "Refine Q2 roadmap",
-            "qa": "Stabilize QA pipeline",
-            "report": "Prepare stakeholder report"
-          },
-          "retro": "Next retrospective: 14:00, Friday."
-        }
-      },
-      "metrics": {
-        "open": {
-          "label": "Open",
-          "value": "42",
-          "detail": "-12% WoW"
+        "accessDenied": {
+          "label": "No access",
+          "title": "Project not found or you do not have access",
+          "hint": "Only project members can view this project. Ask the project lead to add you to the team."
         },
-        "inProgress": {
-          "label": "In progress",
-          "value": "13",
-          "detail": "+3 since yesterday"
-        },
-        "blockers": {
-          "label": "Blockers",
-          "value": "4",
-          "detail": "Escalation needed"
-        },
-        "avgTime": {
-          "label": "Avg time",
-          "value": "3.8d",
-          "detail": "Target 4.5d"
-        }
-      },
-      "activity": {
-        "insights": {
-          "label": "Insights",
-          "title": "Project health",
-          "risk": {
-            "label": "Risk",
-            "value": "Medium"
-          },
-          "scope": {
-            "label": "Scope",
-            "value": "+12%"
-          },
-          "velocity": {
-            "label": "Velocity",
-            "value": "Stable"
-          }
-        },
-        "upcoming": {
-          "label": "Upcoming",
-          "title": "Timeline"
-        },
-        "timeline": {
-          "items": {
-            "demo": "Client demo - Monday 10:00",
-            "planning": "Sprint planning - Tuesday 14:00",
-            "release": "Release candidate - Friday 16:00"
-          }
-        },
-        "feed": {
-          "label": "Activity",
-          "title": "Latest events",
-          "items": {
-            "review": "PR #128 bumped to review",
-            "priority": "New decision: critical priority",
-            "sprint": "Added 3 tasks to sprint",
-            "blocker": "API blocker closed"
-          },
-          "times": {
-            "review": "5 min ago",
-            "priority": "45 min ago",
-            "sprint": "2 hours ago",
-            "blocker": "Yesterday"
-          }
+      "sidebar": {
+        "project": "Project",
+        "navigation": "Navigation",
+        "untitled": "Untitled",
+        "statusLabel": "Status",
+        "statusTitle": "Project active",
+        "statusDetail": "Progress monitored in real time.",
+        "live": "Live",
+        "nav": {
+          "overview": "Overview",
+          "board": "Dashboard",
+          "users": "Users"
         }
       },
       "board": {
-        "label": "Board",
-        "title": "Board preview",
-        "sprint": "Sprint 6",
-        "columns": {
-          "todo": {
-            "title": "To do",
-            "items": {
-              "onboarding": "New client onboarding",
-              "risk": "MVP risk analysis",
-              "requirements": "Collect analytics requirements"
-            }
-          },
-          "inProgress": {
-            "title": "In progress",
-            "items": {
-              "backlog": "Backlog view design",
-              "done": "Define Done definition",
-              "api": "Project API refactor"
-            }
-          },
-          "review": {
-            "title": "Review",
-            "items": {
-              "e2e": "Registration E2E tests",
-              "oauth": "OAuth integration"
-            }
-          }
-        }
+        "badge": "Dashboard",
+        "title": "Work in progress",
+        "subtitle": "Track posts and updates in the project."
       },
-      "sidebar": {
-        "project": "Project",
-        "untitled": "Untitled project",
-        "navigation": "Navigation",
-        "live": "Live",
-        "statusLabel": "Status",
-        "statusTitle": "Sprint 6 in progress",
-        "statusDetail": "8 tasks in progress, 4 in review.",
-        "nav": {
-          "overview": "Overview",
-          "backlog": "Backlog",
-          "board": "Board",
-          "timeline": "Timeline",
-          "reports": "Reports",
-          "people": "People",
-          "settings": "Settings"
-        }
-      },
-      "settings": {
-        "badge": "Project settings",
-        "title": "Project settings",
-        "subtitle": "Manage core data, members, and integrations for the project.",
-        "projectLabel": "Project",
-        "projectId": "ID:",
-        "nameLabel": "Project name",
-        "descriptionLabel": "Project description",
-        "archive": "Archive project",
-        "members": {
-          "title": "Members",
-          "subtitle": "Add and manage team roles in the next iteration.",
-          "comingSoon": "Coming soon: roles, invitations, and permission levels."
+      "users": {
+        "badge": "Users",
+        "title": "Project team",
+        "subtitle": "Manage members, invitations, and permissions.",
+        "errors": {
+          "loadFailed": "Could not load users.",
+          "loadMembersFailed": "Could not load project members.",
+          "loadInvitesFailed": "Could not load invitations."
         },
-        "integrations": {
-          "title": "Integrations",
-          "subtitle": "Connect the project with repositories and calendars.",
-          "comingSoon": "Coming soon: GitHub, Slack, Jira import."
+        "invite": {
+          "missing": "Provide an email to invite.",
+          "error": "Could not send the invitation.",
+          "success": "Invitation sent.",
+          "pending": "Pending acceptance",
+          "label": "Project invitation",
+          "badge": "You can invite",
+          "locked": "No access",
+          "email": "Email",
+          "placeholder": "email@company.com",
+          "sending": "Sending...",
+          "cta": "Send invitation",
+          "hint": "The address will receive a link to join the project."
+        },
+        "incoming": {
+          "title": "Incoming invitations",
+          "subtitle": "Pending invitations to projects.",
+          "empty": "No pending invitations.",
+          "unknownProject": "Unknown project",
+          "unknownUser": "Unknown user",
+          "status": {
+            "pending": "Pending"
+          },
+          "accept": "Join",
+          "accepting": "Joining...",
+          "error": "Could not accept the invitation."
+        },
+        "noPermission": "You do not have permission to manage users.",
+        "status": {
+          "pending": "Pending"
+        },
+        "members": {
+          "title": "Project members",
+          "subtitle": "People in this project.",
+          "empty": "No members.",
+          "owner": "Owner",
+          "member": "Member",
+          "count": "people"
+        },
+        "sent": {
+          "title": "Sent invitations",
+          "empty": "No invitations sent."
         }
       }
     }

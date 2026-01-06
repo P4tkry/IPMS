@@ -3,7 +3,9 @@ import en from "./messages/en.json";
 
 export type Locale = "pl" | "en";
 
-export type Messages = Record<string, string | Messages>;
+export interface Messages {
+  [key: string]: string | Messages;
+}
 
 export const defaultLocale: Locale = "pl";
 
@@ -24,8 +26,8 @@ export const resolveKey = (messages: Messages, key: string): string | undefined 
 
 export const createTranslator =
   (messages: Messages) =>
-  (key: string): string =>
-    resolveKey(messages, key) ?? key;
+    (key: string): string =>
+      resolveKey(messages, key) ?? key;
 
 const messagesByLocale: Record<Locale, Messages> = {
   pl,

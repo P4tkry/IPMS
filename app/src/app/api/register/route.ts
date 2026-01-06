@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Permission } from "@prisma/client";
+import { GlobalPermission } from "@prisma/client";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { token?: string; password?: string };
@@ -45,11 +45,11 @@ export async function POST(request: Request) {
       select: { permissions: true },
     });
 
-    if (createdUser && !createdUser.permissions.includes(Permission.UPLOAD_PHOTOS)) {
+    if (createdUser && !createdUser.permissions.includes(GlobalPermission.UPLOAD_PHOTOS)) {
       await prisma.user.update({
         where: { email: invite.email },
         data: {
-          permissions: { set: [...createdUser.permissions, Permission.UPLOAD_PHOTOS] },
+          permissions: { set: [...createdUser.permissions, GlobalPermission.UPLOAD_PHOTOS] },
         },
       });
     }

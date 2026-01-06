@@ -174,9 +174,9 @@ export default function SummaryStep({
     setLocalDownloading(true);
     try {
       const strings = {
-        kicker: t("project.create.print.kicker"),
-        title: t("project.create.summary.title"),
-        subtitle: t("project.create.success.subtitle"),
+        kicker: t("project.create.card.kicker"),
+        title: t("project.create.card.title"),
+        subtitle: t("project.create.card.subtitle"),
         sections: {
           basics: t("project.create.print.sections.basics"),
           vision: t("project.create.print.sections.vision"),

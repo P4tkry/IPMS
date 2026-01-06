@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Permission } from "@prisma/client";
+import { GlobalPermission } from "@prisma/client";
 
-const validPermissions = new Set<Permission>(Object.values(Permission));
+const validPermissions = new Set<GlobalPermission>(Object.values(GlobalPermission));
 
-const isPermission = (value: string): value is Permission => validPermissions.has(value as Permission);
+const isPermission = (value: string): value is GlobalPermission =>
+  validPermissions.has(value as GlobalPermission);
 
 export async function PUT(
   request: Request,
@@ -35,7 +36,7 @@ export async function PUT(
     return Response.json({ message: "Imie i nazwisko jest wymagane." }, { status: 400 });
   }
 
-  let permissions: Permission[] | undefined = undefined;
+  let permissions: GlobalPermission[] | undefined = undefined;
   if (Array.isArray(body.permissions)) {
     const filtered = body.permissions.filter(isPermission);
     permissions = Array.from(new Set(filtered));

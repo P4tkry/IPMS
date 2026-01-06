@@ -1,5 +1,7 @@
 ﻿"use client";
 
+"use client";
+
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { FiGrid } from "react-icons/fi";

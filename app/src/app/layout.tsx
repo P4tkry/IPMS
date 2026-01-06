@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import "react-quill-new/dist/quill.snow.css";
+import "./globals.css";
 import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { defaultLocale, getMessages, isSupportedLocale } from "@/i18n";
-import "./globals.css";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -44,6 +44,6 @@ export default async function RootLayout({
           </div>
         </I18nProvider>
       </body>
-    </html>
+    </html >
   );
 }

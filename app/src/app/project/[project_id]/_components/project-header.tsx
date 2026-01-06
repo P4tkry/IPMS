@@ -21,7 +21,8 @@ const formatDate = (value: string, locale: string) => {
 
 export default function ProjectHeader({ project }: ProjectHeaderProps) {
   const { t, locale } = useI18n();
-  const projectName = project.name || t("project.view.header.untitled");
+  const projectName =
+    project.tradeName || project.name || t("project.view.header.untitled");
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-[#e1d7cb] bg-white/80 p-6 shadow-[0_30px_70px_-45px_rgba(40,30,20,0.45)] backdrop-blur">

@@ -45,10 +45,22 @@ test("settings account saves tags and career entries", async ({ page }) => {
     name: "Admin User",
   });
 
-  let received: Record<string, unknown> | null = null;
+  type ReceivedPayload = {
+    hobbies?: string[];
+    strengths?: string[];
+    weaknesses?: string[];
+    career?: Array<{
+      startDate?: string;
+      position?: string;
+      companyName?: string;
+      duration?: string;
+    }>;
+  };
+
+  let received: ReceivedPayload | null = null;
   await page.route("**/api/settings", async (route) => {
     if (route.request().method() === "PUT") {
-      received = route.request().postDataJSON() as Record<string, unknown>;
+      received = route.request().postDataJSON() as ReceivedPayload;
       await route.fulfill({
         status: 200,
         contentType: "application/json",

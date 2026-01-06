@@ -120,7 +120,7 @@ export default function AssistantChat({
     if (!text || isSending) {
       return;
     }
-    const history = [...messages, { role: "user", content: text }];
+    const history: AssistantMessage[] = [...messages, { role: "user", content: text }];
     setInput("");
     setIsSending(true);
     setMessages(history);

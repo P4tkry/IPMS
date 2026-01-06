@@ -87,8 +87,8 @@ export default function ScopeStep({
       onSubmit={(values) =>
         onNext(
           values.skipScope
-            ? { inScope: [], outScope: [] }
-            : { inScope: values.inScope, outScope: values.outScope },
+            ? { inScope: [], outScope: [], skipScope: true }
+            : { inScope: values.inScope, outScope: values.outScope, skipScope: false },
         )
       }
     >

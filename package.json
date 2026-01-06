@@ -11,6 +11,6 @@
     "prisma:migrate": "pnpm --filter app exec prisma migrate dev",
     "test:e2e": "pnpm --filter app test:e2e",
     "postinstall": "pnpm --filter app exec prisma generate",
-    "create:admin": "echo \"removed\""
+    "create:admin": "cd app && node scripts/create-admin.js"
   }
 }

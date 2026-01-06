@@ -67,7 +67,7 @@ export default function ProjectBoardPreview() {
               {column.items.map((item) => (
                 <div
                   key={item.tag}
-                  className="rounded-2xl border border-[#e5d9cc] bg-white px-3 py-3 text-sm shadow-[0_12px_30px_-25px_rgba(40,30,20,0.35)]"
+                  className="rounded-2xl border border-[#e5d9cc] bg-white px-6 py-3 text-sm shadow-[0_12px_30px_-25px_rgba(40,30,20,0.35)]"
                 >
                   <p className="text-sm font-semibold text-[#1f1b16]">{item.title}</p>
                   <p className="mt-1 text-xs text-[#8a7762]">{item.tag}</p>

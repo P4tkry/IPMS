@@ -156,8 +156,6 @@ export function CreateProjectView() {
     hydratedProjectIdRef.current = queryProjectId;
     loadExistingProject({
       projectId: queryProjectId,
-      currentUserId: session.user.id,
-      requireLeader: true,
     }).then((loaded) => {
       if (loaded) {
         setIntroStep(2);
@@ -254,47 +252,52 @@ export function CreateProjectView() {
     try {
       setIsDownloading(true);
       const { pdf } = await import("@react-pdf/renderer");
-        const strings = {
-          kicker: t("project.create.print.kicker"),
-          title: t("project.create.summary.title"),
-          subtitle: t("project.create.success.subtitle"),
-          sections: {
-            basics: t("project.create.print.sections.basics"),
-            vision: t("project.create.print.sections.vision"),
-            direction: t("project.create.print.sections.direction"),
-            resources: t("project.create.print.sections.resources"),
-            wrapup: t("project.create.print.sections.wrapup"),
+      const strings = {
+        kicker: t("project.create.card.kicker"),
+        title: t("project.create.card.title"),
+        subtitle: t("project.create.card.subtitle"),
+        footer: {
+          poweredBy: "Powered by IPMS",
+          dateLabel: "Data",
+          signatureLabel: "Podpis",
+        },
+        sections: {
+          basics: t("project.create.print.sections.basics"),
+          vision: t("project.create.print.sections.vision"),
+          direction: t("project.create.print.sections.direction"),
+          resources: t("project.create.print.sections.resources"),
+          wrapup: t("project.create.print.sections.wrapup"),
+        },
+        fields: {
+          name: t("project.create.steps.name"),
+          category: t("project.create.steps.category"),
+          goal: t("project.create.steps.goal"),
+          outcome: t("project.create.steps.outcome"),
+          stakeholders: t("project.create.steps.stakeholders"),
+          justification: t("project.create.steps.justification"),
+          scopeIn: t("project.create.scope.inLabel"),
+          scopeOut: t("project.create.scope.outLabel"),
+          kpis: t("project.create.steps.kpi"),
+          milestones: t("project.create.steps.milestones"),
+          chances: t("project.create.steps.chances"),
+          threats: t("project.create.steps.threats"),
+          terms: t("project.create.steps.terms"),
+          peopleHigh: t("project.create.people.highLabel"),
+          peopleLow: t("project.create.people.lowLabel"),
+          budget: t("project.create.steps.budget"),
+        },
+        stakeholdersMap: {
+          axisPower: t("project.create.stakeholders.chart.axis.power"),
+          axisInterest: t("project.create.stakeholders.chart.axis.interest"),
+          quadrants: {
+            highLow: t("project.create.stakeholders.chart.quadrants.highLow"),
+            highHigh: t("project.create.stakeholders.chart.quadrants.highHigh"),
+            lowLow: t("project.create.stakeholders.chart.quadrants.lowLow"),
+            lowHigh: t("project.create.stakeholders.chart.quadrants.lowHigh"),
           },
-          fields: {
-            name: t("project.create.steps.name"),
-            category: t("project.create.steps.category"),
-            goal: t("project.create.steps.goal"),
-            outcome: t("project.create.steps.outcome"),
-            stakeholders: t("project.create.steps.stakeholders"),
-            justification: t("project.create.steps.justification"),
-            scopeIn: t("project.create.scope.inLabel"),
-            scopeOut: t("project.create.scope.outLabel"),
-            kpis: t("project.create.steps.kpi"),
-            milestones: t("project.create.steps.milestones"),
-            chances: t("project.create.steps.chances"),
-            threats: t("project.create.steps.threats"),
-            terms: t("project.create.steps.terms"),
-            peopleHigh: t("project.create.people.highLabel"),
-            peopleLow: t("project.create.people.lowLabel"),
-            budget: t("project.create.steps.budget"),
-          },
-          stakeholdersMap: {
-            axisPower: t("project.create.stakeholders.chart.axis.power"),
-            axisInterest: t("project.create.stakeholders.chart.axis.interest"),
-            quadrants: {
-              highLow: t("project.create.stakeholders.chart.quadrants.highLow"),
-              highHigh: t("project.create.stakeholders.chart.quadrants.highHigh"),
-              lowLow: t("project.create.stakeholders.chart.quadrants.lowLow"),
-              lowHigh: t("project.create.stakeholders.chart.quadrants.lowHigh"),
-            },
-          },
-          empty: t("common.noData"),
-        };
+        },
+        empty: t("common.noData"),
+      };
       const blob = await pdf(
         <ProjectCardPdfDocument values={lastSubmitted} strings={strings} />,
       ).toBlob();

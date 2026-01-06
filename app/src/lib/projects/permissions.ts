@@ -1,0 +1,20 @@
+import type { ProjectPermission } from "@prisma/client";
+
+export const DASHBOARD_MANAGE_PERMISSION: ProjectPermission = "DASHBOARD_MANAGE";
+export const DASHBOARD_POST_PERMISSION: ProjectPermission = "DASHBOARD_POST";
+export const PROJECT_USERS_MANAGE_PERMISSION: ProjectPermission = "USERS_MANAGE";
+export const TASK_VIEW_PERMISSION: ProjectPermission = "TASK_VIEW";
+export const TASKS_CUD_PERMISSION: ProjectPermission = "TASKS_CUD";
+export const AI_USE_PERMISSION: ProjectPermission = "AI_USE";
+export const PROJECT_REMOVE_PERMISSION: ProjectPermission = "PROJECT_REMOVE";
+export const PROJECT_EDIT_PERMISSION: ProjectPermission = "PROJECT_EDIT";
+export const PROJECT_MEMBER_PERMISSIONS = [
+  PROJECT_USERS_MANAGE_PERMISSION,
+  DASHBOARD_MANAGE_PERMISSION,
+  DASHBOARD_POST_PERMISSION,
+  TASK_VIEW_PERMISSION,
+  TASKS_CUD_PERMISSION,
+  AI_USE_PERMISSION,
+  PROJECT_REMOVE_PERMISSION,
+  PROJECT_EDIT_PERMISSION,
+] as const;

@@ -91,7 +91,7 @@ export default function CreateProjectForm({
   isDownloading,
 }: CreateProjectFormProps) {
   const { t } = useI18n();
-  const { error, form, handleCreateProject, patchProject, updateForm } = project;
+  const { error, form, handleCreateProject, patchProject, updateForm, lastSubmitted } = project;
   const aspects = buildManifestAspects(t);
   const aspectBySlug = Object.fromEntries(aspects.map((aspect) => [aspect.slug, aspect]));
   const buildStepContext = (stepKey: keyof typeof aspectBySlug | "scope") => {
@@ -770,11 +770,11 @@ export default function CreateProjectForm({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <SummaryStep
-                values={{
-                  name,
-                  category,
-                  goal,
+                <SummaryStep
+                  values={{
+                    name,
+                    category,
+                    goal,
                   justification,
                   mvp,
                   kpis,
@@ -793,7 +793,7 @@ export default function CreateProjectForm({
                 onBack={handleSummaryBack}
                 onConfirm={handleSummaryConfirm}
                 isConfirmLoading={isNextLoading}
-                onDownloadCard={onDownloadCard}
+                onDownloadCard={lastSubmitted && onDownloadCard ? onDownloadCard : undefined}
                 isDownloading={isDownloading}
               />
             </motion.div>

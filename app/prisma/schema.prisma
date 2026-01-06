@@ -14,26 +14,28 @@ datasource db {
 }
 
 model User {
-  id              String       @id @default(cuid())
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  email           String       @unique
-  emailVerified   Boolean      @default(false)
-  name            String
-  bio             String?
-  image           String?
-  hobbies         String[]     @default([])
-  strengths       String[]     @default([])
-  weaknesses      String[]     @default([])
-  permissions     Permission[]
-  leadingProjects Project[]    @relation("ProjectLeader")
-  projects        Project[]    @relation("ProjectMembers")
-  socialLinks     SocialLink[]
-  career          CareerEntry[]
-  accounts        Account[]
-  sessions        Session[]
-  Invite          Invite[]
-  feedbacks       Feedback[]
+  id                     String                  @id @default(cuid())
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  email                  String                  @unique
+  emailVerified          Boolean                 @default(false)
+  name                   String
+  bio                    String?
+  image                  String?
+  hobbies                String[]                @default([])
+  strengths              String[]                @default([])
+  weaknesses             String[]                @default([])
+  permissions            GlobalPermission[]
+  projectMembers         ProjectMember[]
+  projectInvitesReceived ProjectInvite[]         @relation("ProjectInvitedUser")
+  projectInvitesSent     ProjectInvite[]         @relation("ProjectInvitedBy")
+  socialLinks            SocialLink[]
+  career                 CareerEntry[]
+  accounts               Account[]
+  sessions               Session[]
+  dashboardEntries       ProjectDashboardEntry[]
+  Invite                 Invite[]
+  feedbacks              Feedback[]
 }
 
 model Account {
@@ -81,15 +83,27 @@ model Verification {
   @@index([identifier])
 }
 
-enum Permission {
+enum GlobalPermission {
   CREATE_USERS // For inviting new users
   REMOVE_USERS // For removing users
   UPDATE_USERS // For updating user details
   UPLOAD_PHOTOS // For uploading profile photos
+  UPLOAD_FILES // For uploading general files
 
   CREATE_ALL_PROJECTS // For creating new projects
   REMOVE_ALL_PROJECTS // For removing any project
   UPDATE_ALL_PROJECTS // For updating any project
+}
+
+enum ProjectPermission {
+  USERS_MANAGE // For managing project members and invites
+  DASHBOARD_MANAGE // For managing dashboard entries
+  DASHBOARD_POST // For posting to dashboard
+  TASK_VIEW // For viewing tasks in backlog
+  TASKS_CUD // For creating/updating/removing tasks and categories
+  AI_USE // For using AI helpers within a project
+  PROJECT_REMOVE // For removing project
+  PROJECT_EDIT // For editing project
 }
 
 enum SocialPlatform {
@@ -100,35 +114,157 @@ enum SocialPlatform {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isDraft     Boolean  @default(false)
-  tokens      Int      @default(10000)
-  name        String?
-  category    String?
-  goal        String?
-  justification String?
-  mvp         String[] @default([])
-  kpis        String[] @default([])
-  milestones  String[] @default([])
-  chances     String[] @default([])
-  threats     String[] @default([])
-  terms       Json?
-  stakeholders String? @map("audience")
-  stakeholderEntries Json?
-  inScope     String[] @default([])
-  outScope    String[] @default([])
+  id                     String                  @id @default(cuid())
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  isDraft                Boolean                 @default(true)
+  tokens                 Int                     @default(10000)
+  name                   String?
+  tradeName              String?
+  category               String?
+  goal                   String?
+  justification          String?
+  mvp                    String[]                @default([])
+  kpis                   String[]                @default([])
+  milestones             String[]                @default([])
+  chances                String[]                @default([])
+  threats                String[]                @default([])
+  terms                  Json?
+  stakeholders           String?                 @map("audience")
+  stakeholderEntries     Json?
+  inScope                String[]                @default([])
+  outScope               String[]                @default([])
   peopleHighAvailability Int?
   peopleLowAvailability  Int?
-  budget      Int?
-  leaderId    String
-  description String?
-  logo        String?  @map("logoUrl")
-  leader      User     @relation("ProjectLeader", fields: [leaderId], references: [id])
-  members     User[]   @relation("ProjectMembers")
+  budget                 Int?
+  description            String?
+  logo                   String?                 @map("logoUrl")
+  members                ProjectMember[]
+  dashboardEntries       ProjectDashboardEntry[]
+  invites                ProjectInvite[]
+  tasks                  Task[]
+  sprints                Sprint[]
+}
 
-  @@index([leaderId])
+enum ProjectRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum ProjectInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  READY_FOR_REVIEW
+  IN_REVIEW
+  DONE
+  REJECTED
+  CANCELLED
+}
+
+model ProjectMember {
+  id          String              @id @default(cuid())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  role        ProjectRole         @default(EDITOR)
+  permissions ProjectPermission[] @default([])
+  projectId   String
+  userId      String
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]              @relation("TaskAssignedMember")
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+model ProjectInvite {
+  id            String              @id @default(cuid())
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  status        ProjectInviteStatus @default(PENDING)
+  projectId     String
+  invitedUserId String
+  invitedById   String
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invitedUser   User                @relation("ProjectInvitedUser", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedBy     User                @relation("ProjectInvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, invitedUserId])
+  @@index([projectId])
+  @@index([invitedUserId])
+}
+
+model ProjectDashboardEntry {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String?
+  content   String
+  tags      String[] @default([])
+  urgent    Boolean  @default(false)
+  projectId String
+  authorId  String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([authorId])
+}
+
+model Task {
+  id               String         @id @default(cuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  title            String
+  description      String?
+  deliveryGuidelines String?
+  taskNumber       Int
+  status           TaskStatus     @default(TODO)
+  deadline         DateTime?
+  pertX            Float?
+  pertY            Float?
+  projectId        String
+  assignedMemberId String?
+  dependentTaskId  String?
+  categoryId       String
+  sprintId         String?
+  project          Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedMember   ProjectMember? @relation("TaskAssignedMember", fields: [assignedMemberId], references: [id], onDelete: SetNull)
+  dependentTask    Task?          @relation("TaskDependency", fields: [dependentTaskId], references: [id], onDelete: SetNull)
+  blockingTasks    Task[]         @relation("TaskDependency")
+  category         TaskCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  sprint           Sprint?        @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([assignedMemberId])
+  @@index([dependentTaskId])
+  @@index([categoryId])
+  @@index([sprintId])
+  @@unique([categoryId, taskNumber])
+}
+
+model Sprint {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  name         String
+  sprintNumber Int
+  startDate    DateTime
+  endDate      DateTime
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+
+  @@index([projectId])
 }
 
 model SocialLink {
@@ -186,4 +322,16 @@ model Feedback {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model TaskCategory {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  code        String   @unique
+  color       String   @default("#f97316")
+  icon        String?
+  description String?
+  tasks       Task[]
 }

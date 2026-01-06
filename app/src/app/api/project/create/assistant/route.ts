@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { DASHBOARD_MANAGE_PERMISSION } from "@/lib/projects/permissions";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
@@ -38,14 +39,21 @@ export async function POST(request: Request) {
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { leaderId: true, tokens: true, name: true },
+    select: { tokens: true, name: true },
   });
 
   if (!project) {
     return Response.json({ message: "Project not found." }, { status: 404 });
   }
 
-  if (project.leaderId !== session.user.id) {
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: session.user.id } },
+    select: { permissions: true },
+  });
+
+  const canManage = membership?.permissions?.includes(DASHBOARD_MANAGE_PERMISSION) === true;
+
+  if (!canManage) {
     return Response.json({ message: "Forbidden" }, { status: 403 });
   }
 
@@ -83,7 +91,7 @@ export async function POST(request: Request) {
   try {
     const cleanedHistory = history
       .map((entry) => ({
-        role: entry.role === "assistant" ? "assistant" : "user",
+        role: (entry.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
         content: typeof entry.content === "string" ? entry.content.trim() : "",
       }))
       .filter((entry) => entry.content.length > 0);

@@ -2,7 +2,10 @@
   "nav": {
     "home": "Strona główna",
     "dashboard": "Dashboard",
+    "users": "Użytkownicy",
     "settings": "Ustawienia",
+    "notifications": "Powiadomienia",
+    "projects": "Projekty",
     "logout": "Wyloguj",
     "login": "Logowanie"
   },
@@ -387,11 +390,17 @@
           "terms": "Terminy (data + opis)"
         },
         "footer": {
-          "poweredBy": "Powered by IPMS",
-          "dateLabel": "Data:",
-          "signatureLabel": "Podpis:"
-        }
-      },
+        "poweredBy": "Powered by IPMS",
+        "dateLabel": "Data:",
+        "signatureLabel": "Podpis",
+        "signDateLabel": "Data i podpis"
+      }
+    },
+    "card": {
+      "kicker": "Karta projektu",
+      "title": "Karta projektu",
+      "subtitle": "Udostępnij ten jednostronicowy dokument interesariuszom."
+    },
       "questions": {
         "name": "Jak roboczo nazwać projekt, aby jasno opisywał cel?",
         "category": "Jaki obszar lub temat najlepiej opisuje projekt?",
@@ -813,11 +822,11 @@
       "errors": {
         "loadFailed": "Nie udało się pobrać projektu."
       },
-      "accessDenied": {
-        "label": "Brak dostępu",
-        "title": "Nie znaleziono projektu lub nie masz do niego dostępu",
-        "hint": "Sprawdź link lub poproś lidera projektu o zaproszenie."
-      },
+        "accessDenied": {
+          "label": "Brak dostępu",
+          "title": "Nie znaleziono projektu lub nie masz do niego dostępu",
+          "hint": "Tylko członkowie zespołu mogą przeglądać projekt. Poproś lidera o dodanie Cię do zespołu."
+        },
       "header": {
         "projects": "Projekty",
         "untitled": "Projekt bez nazwy",
@@ -910,10 +919,54 @@
           }
         }
       },
+      "dashboard": {
+        "label": "Dashboard",
+        "title": "Tablica projektu",
+        "subtitle": "Zostawiaj ważne aktualizacje dla zespołu.",
+        "loading": "Ładowanie dashboardu...",
+        "empty": "Brak wpisów.",
+        "loadError": "Nie udało się załadować tablicy.",
+        "submitError": "Nie udało się opublikować wpisu.",
+          "readOnly": "Możesz czytać wpisy. Publikować mogą tylko osoby z uprawnieniem DASHBOARD_MANAGE lub DASHBOARD_POST.",
+        "entryUntitled": "Wpis bez tytułu",
+        "unknownAuthor": "Nieznany autor",
+        "delete": {
+          "label": "Usuń",
+          "deleting": "Usuwam...",
+          "confirm": "Usunąć ten wpis?",
+          "error": "Nie udało się usunąć wpisu."
+        },
+        "edit": {
+          "label": "Edytuj",
+          "save": "Zapisz",
+          "saving": "Zapisuję...",
+          "cancel": "Anuluj"
+        },
+        "form": {
+          "title": "Dodaj wpis",
+          "badge": "Zarządzanie",
+          "openButton": "Dodaj wpis",
+          "close": "Zamknij",
+          "cancel": "Anuluj",
+          "titlePlaceholder": "Opcjonalny tytuł",
+          "contentPlaceholder": "Treść",
+          "hint": "Obsługujemy Markdown. Pisz konkretnie i zwięźle.",
+          "submit": "Opublikuj",
+          "submitting": "Publikuję..."
+        },
+        "validation": {
+          "titleRequired": "Tytuł jest wymagany.",
+          "contentRequired": "Treść jest wymagana."
+        }
+      },
       "board": {
         "label": "Board",
         "title": "Podgląd tablicy",
         "sprint": "Sprint 6",
+        "tabs": {
+          "updates": "Aktualizacje",
+          "users": "Użytkownicy"
+        },
         "columns": {
           "todo": {
             "title": "Do zrobienia",
@@ -940,6 +993,59 @@
           }
         }
       },
+      "boardPage": {
+        "badge": "Tablica projektu",
+        "title": "Aktualizacje i zespół",
+        "subtitle": "Przełącz się między wpisami a zaproszeniami do projektu."
+      },
+      "users": {
+        "badge": "Zespół",
+        "title": "Użytkownicy projektu",
+        "subtitle": "Zarządzaj członkami oraz zaproszeniami.",
+        "errors": {
+          "loadFailed": "Nie udało się załadować danych."
+        },
+        "invite": {
+          "label": "Zaproś użytkownika",
+          "email": "Email",
+          "placeholder": "np. osoba@firma.com",
+          "cta": "Zaproś",
+          "sending": "Wysyłanie...",
+          "success": "Zaproszenie wysłane.",
+          "error": "Nie udało się wysłać zaproszenia.",
+          "missing": "Podaj adres email.",
+          "hint": "Zaproszenia działają dla istniejących kont użytkowników.",
+          "badge": "Dostęp",
+          "locked": "Brak dostępu",
+          "pending": "Zaproszenie oczekuje"
+        },
+        "incoming": {
+          "title": "Powiadomienia",
+          "subtitle": "Zaproszenia wysłane do Ciebie.",
+          "empty": "Brak oczekujących zaproszeń.",
+          "accept": "Dołącz",
+          "accepting": "Dołączanie...",
+          "error": "Nie udało się zaakceptować zaproszenia.",
+          "unknownProject": "Projekt",
+          "unknownUser": "Nieznany użytkownik"
+        },
+        "members": {
+          "title": "Członkowie",
+          "count": "osób",
+          "empty": "Brak członków.",
+          "owner": "Właściciel",
+          "member": "Członek"
+        },
+        "sent": {
+          "title": "Wysłane zaproszenia",
+          "empty": "Brak wysłanych zaproszeń."
+        },
+        "status": {
+          "pending": "Oczekuje",
+          "accepted": "Przyjęte"
+        },
+        "noPermission": "Nie masz uprawnienia USERS_MANAGE."
+      },
       "sidebar": {
         "project": "Projekt",
         "untitled": "Projekt bez nazwy",
@@ -952,6 +1058,7 @@
           "overview": "Przegląd",
           "backlog": "Backlog",
           "board": "Tablica",
+          "users": "Zespół",
           "timeline": "Oś czasu",
           "reports": "Raporty",
           "people": "Ludzie",

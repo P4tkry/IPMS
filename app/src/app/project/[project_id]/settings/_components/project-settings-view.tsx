@@ -10,6 +10,7 @@ import ProjectLogo from "@/components/project-logo";
 export default function ProjectSettingsView() {
   const { t } = useI18n();
   const project = useProjectContext();
+  const displayName = project.tradeName || project.name || t("project.view.header.untitled");
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,14 +28,14 @@ export default function ProjectSettingsView() {
         <Card className="border-[#e2d6c9] bg-white/80 shadow-[0_30px_80px_-40px_rgba(60,40,20,0.45)] backdrop-blur">
           <CardContent className="space-y-6 p-6">
             <div className="flex items-center gap-4">
-              <ProjectLogo name={project.name || ""} />
+              <ProjectLogo name={displayName || ""} />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8d7b68]">
                   {t("project.view.settings.projectLabel")}
                 </p>
-                <p className="text-xl font-semibold text-[#2a241f]">
-                  {project.name || t("project.view.header.untitled")}
-                </p>
+                 <p className="text-xl font-semibold text-[#2a241f]">
+                   {displayName}
+                 </p>
                 <p className="mt-1 text-xs text-[#6f6255]">
                   {t("project.view.settings.projectId")} {project.id}
                 </p>

@@ -122,3 +122,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+.ipms-quill .ql-toolbar {
+  border: 1px solid #d7c8b7;
+  border-bottom: 0;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: #fdfaf5;
+}
+
+.ipms-quill .ql-container {
+  border: 1px solid #d7c8b7;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #ffffff;
+  font-family: inherit;
+}
+
+.ipms-quill .ql-editor {
+  min-height: 140px;
+  padding: 0.5rem 0.75rem;
+  color: #2a241f;
+  font-size: 0.875rem;
+}
+
+.ipms-quill .ql-editor.ql-blank::before {
+  color: #8a7762;
+  font-style: normal;
+}

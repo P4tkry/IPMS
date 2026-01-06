@@ -21,11 +21,7 @@ export type CreateProjectState = {
   buildAssistantContext: (step: string) => string;
   buildProjectContext: () => string;
   patchProject: (patch: Partial<ProjectPayload>) => Promise<void>;
-  loadExistingProject: (args: {
-    projectId: string;
-    currentUserId?: string | null;
-    requireLeader?: boolean;
-  }) => Promise<boolean>;
+  loadExistingProject: (args: { projectId: string }) => Promise<boolean>;
   handleCreateProject: (values: ProjectPayload) => Promise<void>;
   handleCreateDraft: () => Promise<void>;
 };
@@ -278,9 +274,6 @@ export function useCreateProject(): CreateProjectState {
     setError(null);
     setSuccess(null);
     const payload = buildProjectUpdatePayload(patch);
-    if (!("isDraft" in payload)) {
-      payload.isDraft = true;
-    }
     try {
       const response = await fetch(`/api/project/${projectId}`, {
         method: "PATCH",
@@ -297,19 +290,8 @@ export function useCreateProject(): CreateProjectState {
     }
   };
 
-  const loadExistingProject = async ({
-    projectId: nextProjectId,
-    currentUserId,
-    requireLeader = true,
-  }: {
-    projectId: string;
-    currentUserId?: string | null;
-    requireLeader?: boolean;
-  }) => {
+  const loadExistingProject = async ({ projectId: nextProjectId }: { projectId: string }) => {
     if (!nextProjectId) {
-      return false;
-    }
-    if (requireLeader && !currentUserId) {
       return false;
     }
     setError(null);
@@ -325,14 +307,6 @@ export function useCreateProject(): CreateProjectState {
       if (!projectData) {
         return false;
       }
-      if (
-        requireLeader &&
-        currentUserId &&
-        typeof projectData.leaderId === "string" &&
-        projectData.leaderId !== currentUserId
-      ) {
-        return false;
-      }
       setProjectId(projectData.id ?? nextProjectId);
       setForm({
         name: projectData.name ?? "",
@@ -346,7 +320,7 @@ export function useCreateProject(): CreateProjectState {
         threats: normalizeStringList(projectData.threats),
         terms: Array.isArray(projectData.terms)
           ? projectData.terms
-              .map((item) => ({
+              .map((item: { date?: string | null; description?: string | null }) => ({
                 date: typeof item?.date === "string" ? item.date.trim() : "",
                 description:
                   typeof item?.description === "string"

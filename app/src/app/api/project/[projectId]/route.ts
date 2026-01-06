@@ -1,5 +1,16 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { GlobalPermission } from "@prisma/client";
+import {
+  DASHBOARD_MANAGE_PERMISSION,
+  DASHBOARD_POST_PERMISSION,
+  AI_USE_PERMISSION,
+  PROJECT_EDIT_PERMISSION,
+  PROJECT_REMOVE_PERMISSION,
+  PROJECT_USERS_MANAGE_PERMISSION,
+  TASK_VIEW_PERMISSION,
+  TASKS_CUD_PERMISSION,
+} from "@/lib/projects/permissions";
 
 export async function GET(
   request: Request,
@@ -12,55 +23,90 @@ export async function GET(
 
   const { projectId } = await params;
 
-  const exists = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { id: true },
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { permissions: true },
   });
 
-  if (!exists) {
-    return Response.json({ message: "Project not found." }, { status: 404 });
-  }
+  const projectSelection = {
+    id: true,
+    name: true,
+    tradeName: true,
+    category: true,
+    goal: true,
+    justification: true,
+    mvp: true,
+    kpis: true,
+    milestones: true,
+    chances: true,
+    threats: true,
+    terms: true,
+    stakeholderEntries: true,
+    inScope: true,
+    outScope: true,
+    peopleHighAvailability: true,
+    peopleLowAvailability: true,
+    budget: true,
+    description: true,
+    logo: true,
+    isDraft: true,
+    createdAt: true,
+    updatedAt: true,
+  } as const;
 
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      OR: [
-        { leaderId: session.user.id },
-        { members: { some: { id: session.user.id } } },
-      ],
-    },
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      goal: true,
-      justification: true,
-      mvp: true,
-      kpis: true,
-      milestones: true,
-      chances: true,
-      threats: true,
-      terms: true,
-      stakeholderEntries: true,
-      inScope: true,
-      outScope: true,
-      peopleHighAvailability: true,
-      peopleLowAvailability: true,
-      budget: true,
-      description: true,
-      logo: true,
-      isDraft: true,
-      createdAt: true,
-      updatedAt: true,
-      leaderId: true,
-    },
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: projectSelection,
   });
 
   if (!project) {
+    return Response.json({ message: "Project not found." }, { status: 404 });
+  }
+
+  let membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: session.user.id } },
+    select: { permissions: true },
+  });
+
+  if (!membership) {
     return Response.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  return Response.json({ project });
+  const permissionSet = new Set<string>(membership.permissions ?? []);
+
+  const canManageDashboard = permissionSet.has(DASHBOARD_MANAGE_PERMISSION);
+  const canPostDashboard = canManageDashboard || permissionSet.has(DASHBOARD_POST_PERMISSION);
+  const canManageUsers = permissionSet.has(PROJECT_USERS_MANAGE_PERMISSION);
+  const canInvite = canManageUsers;
+  const canManageTasks = permissionSet.has(TASKS_CUD_PERMISSION);
+  const canViewTasks = canManageTasks || permissionSet.has(TASK_VIEW_PERMISSION);
+  const canUseAi = permissionSet.has(AI_USE_PERMISSION);
+  const canUploadFiles = currentUser?.permissions?.includes(GlobalPermission.UPLOAD_FILES) === true;
+  const canRemoveProject =
+    membership.permissions?.includes(PROJECT_REMOVE_PERMISSION) ||
+    currentUser?.permissions?.includes(GlobalPermission.REMOVE_ALL_PROJECTS) === true;
+  const canEditProject =
+    membership.permissions?.includes(PROJECT_EDIT_PERMISSION) ||
+    currentUser?.permissions?.includes(GlobalPermission.UPDATE_ALL_PROJECTS) === true;
+
+  return Response.json({
+    project: {
+      ...project,
+      canManageDashboard,
+      canPostDashboard,
+      canInvite,
+      canManageUsers,
+      canCreateTasks: canManageTasks,
+      canManageTasks,
+      canViewTasks,
+      canUseAi,
+      pendingInvite: false,
+      isMember: true,
+      canUploadFiles,
+      canRemoveProject,
+      canEditProject,
+    },
+  });
 }
 
 export async function PATCH(
@@ -75,6 +121,7 @@ export async function PATCH(
   const { projectId } = await params;
   const body = (await request.json()) as {
     name?: string;
+    tradeName?: string;
     category?: string;
     goal?: string;
     justification?: string;
@@ -104,6 +151,7 @@ export async function PATCH(
   };
 
   const name = body.name?.trim();
+  const tradeName = body.tradeName?.trim();
   const category = body.category?.trim();
   const goal = body.goal?.trim();
   const justification = body.justification?.trim();
@@ -186,25 +234,26 @@ export async function PATCH(
   const logo = body.logo?.trim();
   const isDraft = typeof body.isDraft === "boolean" ? body.isDraft : undefined;
 
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      OR: [
-        { leaderId: session.user.id },
-        { members: { some: { id: session.user.id } } },
-      ],
-    },
-    select: { id: true },
-  });
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } });
 
   if (!project) {
     return Response.json({ message: "Project not found." }, { status: 404 });
+  }
+
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: session.user.id } },
+    select: { id: true },
+  });
+
+  if (!membership) {
+    return Response.json({ message: "Forbidden" }, { status: 403 });
   }
 
   const updated = await prisma.project.update({
     where: { id: projectId },
     data: {
       ...(name ? { name } : {}),
+      ...(tradeName ? { tradeName } : {}),
       ...(category ? { category } : {}),
       ...(goal ? { goal } : {}),
       ...(justification ? { justification } : {}),
@@ -230,6 +279,7 @@ export async function PATCH(
     select: {
       id: true,
       name: true,
+      tradeName: true,
       description: true,
       logo: true,
       isDraft: true,
@@ -238,4 +288,47 @@ export async function PATCH(
   });
 
   return Response.json({ project: updated });
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> },
+) {
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session?.user) {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const { projectId } = await params;
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+
+  if (!project) {
+    return Response.json({ message: "Project not found." }, { status: 404 });
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { permissions: true },
+  });
+
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: session.user.id } },
+    select: { permissions: true },
+  });
+
+  const canRemove =
+    membership?.permissions?.includes(PROJECT_REMOVE_PERMISSION) ||
+    currentUser?.permissions?.includes(GlobalPermission.REMOVE_ALL_PROJECTS);
+
+  if (!canRemove) {
+    return Response.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+  await prisma.project.delete({ where: { id: projectId } });
+
+  return Response.json({ success: true });
 }

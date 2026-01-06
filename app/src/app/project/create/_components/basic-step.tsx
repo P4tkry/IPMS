@@ -37,7 +37,7 @@ export default function BasicStep({
     <div className="flex flex-col justify-center gap-4 p-5">
       <Formik<BasicStepValues>
         initialValues={{
-          name: form.name,
+          name: form.name || "",
         }}
         enableReinitialize
         validationSchema={validationSchema}
@@ -76,9 +76,9 @@ export default function BasicStep({
                 {t("project.create.name.label")}
               </label>
               <input
-                id="name"
-                name="name"
-                value={values.name}
+                value={
+                  values.name
+                }
                 onChange={(event) => {
                   handleChange(event);
                   onUpdate?.(event.target.value);

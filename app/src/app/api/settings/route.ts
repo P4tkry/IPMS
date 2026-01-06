@@ -1,3 +1,4 @@
+import { SocialPlatform } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -68,12 +69,22 @@ export async function PUT(request: Request) {
     return Response.json({ message: "Imie i nazwisko jest wymagane." }, { status: 400 });
   }
   const bio = body.bio?.trim() || null;
-  const socialLinks = (body.socialLinks || [])
-    .map((link) => ({
-      platform: link.platform,
-      url: link.url.trim(),
-    }))
-    .filter((link) => link.url.length > 0);
+  const socialLinksInput = Array.isArray(body.socialLinks) ? body.socialLinks : [];
+  const allowedSocialPlatforms = new Set<SocialPlatform>(Object.values(SocialPlatform));
+  const socialLinks = socialLinksInput
+    .map((link) => {
+      const platform =
+        typeof link?.platform === "string" ? (link.platform.trim().toUpperCase() as SocialPlatform) : null;
+      const url = typeof link?.url === "string" ? link.url.trim() : "";
+      if (!platform || !allowedSocialPlatforms.has(platform) || !url) {
+        return null;
+      }
+      return { platform, url };
+    })
+    .filter((link): link is { platform: SocialPlatform; url: string } => !!link);
+  if ("socialLinks" in body && socialLinks.length !== socialLinksInput.length) {
+    return Response.json({ message: "Nieprawidlowy link spolecznosciowy." }, { status: 400 });
+  }
   const hobbies =
     "hobbies" in body ? normalizeList(body.hobbies) : undefined;
   if ("hobbies" in body && hobbies === null) {
