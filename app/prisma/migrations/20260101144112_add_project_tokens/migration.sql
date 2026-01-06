@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Project" ADD COLUMN     "tokens" INTEGER NOT NULL DEFAULT 10000;

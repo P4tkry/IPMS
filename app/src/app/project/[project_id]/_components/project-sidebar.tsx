@@ -35,11 +35,18 @@ export default function ProjectSidebar({ project }: ProjectSidebarProps) {
     { label: "Core", href: `/project/${project.id}/core` },
     { label: t("project.view.sidebar.nav.board"), href: `/project/${project.id}/board` },
     { label: "Moje zadania", href: `/project/${project.id}/my-tasks` },
+    { label: "Chat", href: `/project/${project.id}/chat` },
   ];
   const manageNav = [
     { label: t("project.view.sidebar.nav.backlog") ?? "Backlog", href: `/project/${project.id}/backlog` },
     { label: t("project.view.sidebar.nav.users"), href: `/project/${project.id}/users` },
   ];
+  const formatSprintDate = (value?: string) => {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return new Intl.DateTimeFormat("pl-PL", { day: "2-digit", month: "short" }).format(parsed);
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -156,7 +163,7 @@ export default function ProjectSidebar({ project }: ProjectSidebarProps) {
           </nav>
         </div>
       </div>
-      <div className="rounded-2xl border border-[#eadfd3] bg-[#f8f4ef] px-4 py-4 text-xs text-[#6f6255]">
+      <div className="rounded-2xl border border-[#eadfd3] bg-gradient-to-br from-[#fbf7f2] via-[#f4ede4] to-[#efe5da] px-4 py-4 text-xs text-[#5b5044] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8a7762]">
           Status sprintu
         </p>
@@ -166,12 +173,33 @@ export default function ProjectSidebar({ project }: ProjectSidebarProps) {
           <p className="mt-2 text-sm text-rose-700">{sprintError}</p>
         ) : sprintStatus?.active && sprintStatus.sprint ? (
           <>
-            <p className="mt-2 text-sm font-semibold text-[#1f1b16]">Aktywny</p>
-            <p className="mt-1 text-xs text-[#5b5044]">{sprintStatus.sprint.name}</p>
-            <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#8a7762]">
-              SPRINT-{sprintStatus.sprint.id}
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Aktywny
+              </span>
+              <span className="inline-flex shrink-0 rounded-full border border-[#eadfd3] bg-white/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
+                SPRINT-{sprintStatus.sprint.sprintNumber}
+              </span>
+            </div>
+            <p className="mt-2 text-sm font-semibold text-[#1f1b16]">{sprintStatus.sprint.name}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[#8a7762]">
+              {formatSprintDate(sprintStatus.sprint.startDate)} – {formatSprintDate(sprintStatus.sprint.endDate)}
             </p>
-            <div className="mt-3 grid gap-2">
+            <div className="mt-3 space-y-2">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/70">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-[width] duration-500 ease-out"
+                  style={{
+                    width: sprintStatus.sprint.totalCount
+                      ? `${Math.min(
+                          100,
+                          Math.round((sprintStatus.sprint.doneCount / sprintStatus.sprint.totalCount) * 100),
+                        )}%`
+                      : "0%",
+                  }}
+                />
+              </div>
               <div className="flex items-center justify-between">
                 <span>W trakcie</span>
                 <span className="font-semibold text-[#1f1b16]">

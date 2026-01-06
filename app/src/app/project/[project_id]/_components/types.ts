@@ -30,6 +30,7 @@ export type ProjectInfo = {
   canViewTasks?: boolean;
   canCreateTasks?: boolean;
   canManageTasks?: boolean;
+  canMessageTasks?: boolean;
   canUseAi?: boolean;
   canUploadFiles?: boolean;
   canRemoveProject?: boolean;
@@ -62,6 +63,8 @@ export type TaskStatus =
   | "REJECTED"
   | "CANCELLED";
 
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
 export type TaskCategory = {
   id: string;
   name: string;
@@ -76,9 +79,11 @@ export type ProjectTask = {
   id: string;
   title: string;
   description?: string | null;
-  deliveryGuidelines?: string | null;
+  userStory?: string | null;
+  acceptanceCriteria?: string | null;
   taskNumber: number;
   status: TaskStatus;
+  priority: TaskPriority;
   deadline?: string | null;
   pertX?: number | null;
   pertY?: number | null;
@@ -86,6 +91,15 @@ export type ProjectTask = {
   createdAt: string;
   updatedAt: string;
   assignedMember?: {
+    id: string;
+    user: {
+      id: string;
+      name: string | null;
+      email: string | null;
+      image: string | null;
+    } | null;
+  } | null;
+  reviewMember?: {
     id: string;
     user: {
       id: string;

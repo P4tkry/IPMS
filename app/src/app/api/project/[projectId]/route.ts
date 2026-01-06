@@ -8,6 +8,7 @@ import {
   PROJECT_EDIT_PERMISSION,
   PROJECT_REMOVE_PERMISSION,
   PROJECT_USERS_MANAGE_PERMISSION,
+  TASK_MESSAGE_CRUD_PERMISSION,
   TASK_VIEW_PERMISSION,
   TASKS_CUD_PERMISSION,
 } from "@/lib/projects/permissions";
@@ -80,6 +81,7 @@ export async function GET(
   const canInvite = canManageUsers;
   const canManageTasks = permissionSet.has(TASKS_CUD_PERMISSION);
   const canViewTasks = canManageTasks || permissionSet.has(TASK_VIEW_PERMISSION);
+  const canMessageTasks = permissionSet.has(TASK_MESSAGE_CRUD_PERMISSION);
   const canUseAi = permissionSet.has(AI_USE_PERMISSION);
   const canUploadFiles = currentUser?.permissions?.includes(GlobalPermission.UPLOAD_FILES) === true;
   const canRemoveProject =
@@ -99,6 +101,7 @@ export async function GET(
       canCreateTasks: canManageTasks,
       canManageTasks,
       canViewTasks,
+      canMessageTasks,
       canUseAi,
       pendingInvite: false,
       isMember: true,

@@ -36,6 +36,7 @@ model User {
   dashboardEntries       ProjectDashboardEntry[]
   Invite                 Invite[]
   feedbacks              Feedback[]
+  taskMessages           TaskMessage[]
 }
 
 model Account {
@@ -101,6 +102,7 @@ enum ProjectPermission {
   DASHBOARD_POST // For posting to dashboard
   TASK_VIEW // For viewing tasks in backlog
   TASKS_CUD // For creating/updating/removing tasks and categories
+  TASK_MESSAGE_CRUD // For viewing/sending task messages
   AI_USE // For using AI helpers within a project
   PROJECT_REMOVE // For removing project
   PROJECT_EDIT // For editing project
@@ -169,6 +171,13 @@ enum TaskStatus {
   CANCELLED
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model ProjectMember {
   id          String              @id @default(cuid())
   createdAt   DateTime            @default(now())
@@ -180,6 +189,7 @@ model ProjectMember {
   project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   tasks       Task[]              @relation("TaskAssignedMember")
+  reviewTasks Task[]              @relation("TaskReviewMember")
 
   @@unique([projectId, userId])
   @@index([projectId])
@@ -225,31 +235,54 @@ model Task {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   title            String
-  description      String?
-  deliveryGuidelines String?
+  description        String?
+  userStory          String?
+  acceptanceCriteria String?
   taskNumber       Int
   status           TaskStatus     @default(TODO)
+  priority         TaskPriority   @default(MEDIUM)
+  completionDescription String?
+  completionLinks     String[]    @default([])
+  completionFiles     String[]    @default([])
   deadline         DateTime?
   pertX            Float?
   pertY            Float?
   projectId        String
   assignedMemberId String?
+  reviewMemberId   String?
   dependentTaskId  String?
   categoryId       String
   sprintId         String?
   project          Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignedMember   ProjectMember? @relation("TaskAssignedMember", fields: [assignedMemberId], references: [id], onDelete: SetNull)
+  reviewMember     ProjectMember? @relation("TaskReviewMember", fields: [reviewMemberId], references: [id], onDelete: SetNull)
   dependentTask    Task?          @relation("TaskDependency", fields: [dependentTaskId], references: [id], onDelete: SetNull)
   blockingTasks    Task[]         @relation("TaskDependency")
   category         TaskCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   sprint           Sprint?        @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  messages         TaskMessage[]
 
   @@index([projectId])
   @@index([assignedMemberId])
+  @@index([reviewMemberId])
   @@index([dependentTaskId])
   @@index([categoryId])
   @@index([sprintId])
   @@unique([categoryId, taskNumber])
+}
+
+model TaskMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String
+  taskId    String
+  authorId  String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([authorId])
 }
 
 model Sprint {

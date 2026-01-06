@@ -1,8 +1,7 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { DragEvent, PointerEvent } from "react";
-import dynamic from "next/dynamic";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import type { DragEvent } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { motion } from "framer-motion";
@@ -13,7 +12,6 @@ import {
     ChevronDown,
     ChevronUp,
     Crosshair,
-    FileText,
     LayoutGrid,
     ListChecks,
     Tags,
@@ -28,7 +26,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n/useI18n";
 import { useProjectContext } from "./project-context";
-import type { ProjectTask, Sprint, TaskCategory, TaskStatus } from "./types";
+import { BacklogAiModal } from "./backlog-ai-modal";
+import { BacklogTaskModal } from "./backlog-task-modal";
+import { PertDiagram } from "./pert-diagram";
+import type { ProjectTask, Sprint, TaskCategory, TaskPriority, TaskStatus } from "./types";
 
 const statusConfig: Record<
     TaskStatus,
@@ -93,6 +94,30 @@ const statusConfig: Record<
     },
 };
 
+const priorityConfig: Record<TaskPriority, { label: string; badge: string; dot: string }> = {
+    LOW: {
+        label: "Niski",
+        badge: "bg-slate-50 text-slate-700 border border-slate-200",
+        dot: "bg-slate-400",
+    },
+    MEDIUM: {
+        label: "—redni",
+        badge: "bg-blue-50 text-blue-800 border border-blue-200",
+        dot: "bg-blue-500",
+    },
+    HIGH: {
+        label: "Wysoki",
+        badge: "bg-amber-50 text-amber-800 border border-amber-200",
+        dot: "bg-amber-500",
+    },
+    URGENT: {
+        label: "Pilny",
+        badge: "bg-rose-50 text-rose-800 border border-rose-200",
+        dot: "bg-rose-500",
+    },
+};
+
+
 const categoryPalette = [
     "#f97316",
     "#0ea5e9",
@@ -114,18 +139,9 @@ const iconOptions = [
     { value: "activity", icon: Activity, label: "Praca" },
 ] as const;
 
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-const quillModules = {
-    toolbar: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-    ],
-};
-const quillFormats = ["bold", "italic", "underline", "list"];
-
 type CategorySortKey = "name" | "code" | "description" | "tasksCount";
 type CategorySortDirection = "asc" | "desc";
-type AiTarget = "description" | "guidelines";
+type AiTarget = "description" | "criteria";
 type AiFormTarget = "create" | "edit";
 type ProjectMemberSummary = {
     id: string;
@@ -195,8 +211,16 @@ export default function ProjectBacklog() {
     const [showAiModal, setShowAiModal] = useState(false);
     const [aiTarget, setAiTarget] = useState<AiTarget>("description");
     const [aiFormTarget, setAiFormTarget] = useState<AiFormTarget>("create");
+    const [aiAssignError, setAiAssignError] = useState<string | null>(null);
+    const [aiAssignLoading, setAiAssignLoading] = useState(false);
+    const [issueQuery, setIssueQuery] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+    const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
+    const [assigneeFilter, setAssigneeFilter] = useState("all");
     const canManageTasks = (project.canManageTasks ?? project.canCreateTasks) === true;
     const canViewTasks = (project.canViewTasks ?? false) || canManageTasks;
+    const canMessageTasks = project.canMessageTasks === true;
     const canUseAi = project.canUseAi === true;
 
     const sortedCategories = useMemo(() => {
@@ -549,6 +573,8 @@ export default function ProjectBacklog() {
     useEffect(() => {
         if (activeTab === "tasks") {
             loadTasks();
+            void loadMembers();
+            void loadCategories();
         }
         if (activeTab === "categories") {
             loadCategories();
@@ -567,23 +593,27 @@ export default function ProjectBacklog() {
         if (!showModal) return;
         setCreateError(null);
         setAiError(null);
+        setAiAssignError(null);
         setShowAiModal(false);
         setAiPrompt("");
         setAiTarget("description");
         setAiFormTarget("create");
         void loadMembers();
+        void loadSprints();
     }, [loadMembers, showModal]);
 
     useEffect(() => {
         if (!showEditModal) return;
         setEditError(null);
         setAiError(null);
+        setAiAssignError(null);
         setShowAiModal(false);
         setAiPrompt("");
         setAiTarget("description");
         setAiFormTarget("edit");
         void loadMembers();
-    }, [loadMembers, showEditModal]);
+        void loadSprints();
+    }, [loadMembers, loadSprints, showEditModal]);
 
 
 
@@ -766,9 +796,14 @@ export default function ProjectBacklog() {
         initialValues: {
             title: "",
             description: "",
-            deliveryGuidelines: "",
+            userStory: "",
+            acceptanceCriteria: "",
             assignedMemberId: "",
+            reviewMemberId: "",
             categoryCode: "",
+            sprintId: "",
+            status: "TODO" as TaskStatus,
+            priority: "MEDIUM" as TaskPriority,
         },
         validationSchema: Yup.object({
             title: Yup.string().trim().required("Tytuł jest wymagany.").max(120, "Tytuł jest za długi."),
@@ -778,9 +813,30 @@ export default function ProjectBacklog() {
                     const plain = getRichTextPlain(value ?? "");
                     return plain.length <= 1000;
                 }),
-            deliveryGuidelines: Yup.string().trim().max(1000, "Wytyczne są za długie."),
+            userStory: Yup.string().trim().max(1000, "User story jest za długa."),
+            acceptanceCriteria: Yup.string().trim().max(1000, "Kryteria są za długie."),
             assignedMemberId: Yup.string().trim(),
+            reviewMemberId: Yup.string().trim(),
             categoryCode: Yup.string().trim().required("Kategoria jest wymagana."),
+            sprintId: Yup.string().trim(),
+            status: Yup.mixed<TaskStatus>()
+                .oneOf(
+                    [
+                        "TODO",
+                        "IN_PROGRESS",
+                        "BLOCKED",
+                        "READY_FOR_REVIEW",
+                        "IN_REVIEW",
+                        "DONE",
+                        "REJECTED",
+                        "CANCELLED",
+                    ],
+                    "Nieprawidlowy status.",
+                )
+                .required("Status jest wymagany."),
+            priority: Yup.mixed<TaskPriority>()
+                .oneOf(["LOW", "MEDIUM", "HIGH", "URGENT"], "Nieprawidlowy priorytet.")
+                .required("Priorytet jest wymagany."),
         }),
         onSubmit: async (values, helpers) => {
             setCreateError(null);
@@ -794,10 +850,14 @@ export default function ProjectBacklog() {
                 const payload = {
                     title: values.title.trim(),
                     description: sanitizedDescription || null,
-                    deliveryGuidelines: values.deliveryGuidelines.trim() || null,
+                    userStory: values.userStory.trim() || null,
+                    acceptanceCriteria: values.acceptanceCriteria.trim() || null,
                     assignedMemberId: values.assignedMemberId.trim() || null,
+                    reviewMemberId: values.reviewMemberId.trim() || null,
                     categoryCode: values.categoryCode.trim().toUpperCase(),
-                    status: "TODO" as TaskStatus,
+                    sprintId: values.sprintId.trim() || null,
+                    status: values.status,
+                    priority: values.priority,
                 };
                 const response = await fetch(`/api/project/${project.id}/tasks`, {
                     method: "POST",
@@ -829,9 +889,14 @@ export default function ProjectBacklog() {
         initialValues: {
             title: editingTask?.title ?? "",
             description: editingTask?.description ?? "",
+            userStory: editingTask?.userStory ?? "",
             categoryCode: editingTask?.category?.code ?? "",
-            deliveryGuidelines: editingTask?.deliveryGuidelines ?? "",
+            acceptanceCriteria: editingTask?.acceptanceCriteria ?? "",
             assignedMemberId: editingTask?.assignedMember?.id ?? "",
+            reviewMemberId: editingTask?.reviewMember?.id ?? "",
+            sprintId: editingTask?.sprintId ?? "",
+            status: editingTask?.status ?? "TODO",
+            priority: editingTask?.priority ?? "MEDIUM",
         },
         validationSchema: Yup.object({
             title: Yup.string().trim().required("Tytuł jest wymagany.").max(120, "Tytuł jest za długi."),
@@ -842,8 +907,29 @@ export default function ProjectBacklog() {
                     return plain.length <= 1000;
                 }),
             categoryCode: Yup.string().trim().required("Kategoria jest wymagana."),
-            deliveryGuidelines: Yup.string().trim().max(1000, "Wytyczne są za długie."),
+            userStory: Yup.string().trim().max(1000, "User story jest za długa."),
+            acceptanceCriteria: Yup.string().trim().max(1000, "Kryteria są za długie."),
             assignedMemberId: Yup.string().trim(),
+            reviewMemberId: Yup.string().trim(),
+            sprintId: Yup.string().trim(),
+            status: Yup.mixed<TaskStatus>()
+                .oneOf(
+                    [
+                        "TODO",
+                        "IN_PROGRESS",
+                        "BLOCKED",
+                        "READY_FOR_REVIEW",
+                        "IN_REVIEW",
+                        "DONE",
+                        "REJECTED",
+                        "CANCELLED",
+                    ],
+                    "Nieprawidlowy status.",
+                )
+                .required("Status jest wymagany."),
+            priority: Yup.mixed<TaskPriority>()
+                .oneOf(["LOW", "MEDIUM", "HIGH", "URGENT"], "Nieprawidlowy priorytet.")
+                .required("Priorytet jest wymagany."),
         }),
         onSubmit: async (values, helpers) => {
             setEditError(null);
@@ -858,9 +944,14 @@ export default function ProjectBacklog() {
                     taskId: editingTask.id,
                     title: values.title.trim(),
                     description: sanitizedDescription || null,
-                    deliveryGuidelines: values.deliveryGuidelines.trim() || null,
+                    userStory: values.userStory.trim() || null,
+                    acceptanceCriteria: values.acceptanceCriteria.trim() || null,
                     assignedMemberId: values.assignedMemberId.trim() || null,
+                    reviewMemberId: values.reviewMemberId.trim() || null,
                     categoryCode: values.categoryCode.trim().toUpperCase(),
+                    sprintId: values.sprintId.trim() || null,
+                    status: values.status,
+                    priority: values.priority,
                 };
                 const response = await fetch(`/api/project/${project.id}/tasks`, {
                     method: "PATCH",
@@ -917,8 +1008,8 @@ export default function ProjectBacklog() {
         }
         if (!aiPrompt.trim()) {
             setAiError(
-                aiTarget === "guidelines"
-                    ? "Wpisz, co ma zawierac wytyczne."
+                aiTarget === "criteria"
+                    ? "Wpisz, co ma zawierac kryteria."
                     : "Wpisz, co ma zawierac opis.",
             );
             return;
@@ -932,7 +1023,7 @@ export default function ProjectBacklog() {
                 body: JSON.stringify({
                     projectId: project.id,
                     prompt: aiPrompt.trim(),
-                    mode: aiTarget === "guidelines" ? "guidelines" : "description",
+                    mode: aiTarget === "criteria" ? "criteria" : "description",
                 }),
             });
             const payload = await response.json();
@@ -945,7 +1036,7 @@ export default function ProjectBacklog() {
                 if (aiTarget === "description") {
                     targetForm.setFieldValue("description", formatAiDescription(payload.text));
                 } else {
-                    targetForm.setFieldValue("deliveryGuidelines", payload.text.trim());
+                    targetForm.setFieldValue("acceptanceCriteria", payload.text.trim());
                 }
                 setShowAiModal(false);
             }
@@ -966,6 +1057,73 @@ export default function ProjectBacklog() {
         taskForm,
     ]);
 
+    const canAutoAssignCreate = useMemo(() => {
+        const title = taskForm.values.title.trim();
+        const category = taskForm.values.categoryCode.trim();
+        const description = getRichTextPlain(taskForm.values.description).trim();
+        return Boolean(title && category && description);
+    }, [getRichTextPlain, taskForm.values.categoryCode, taskForm.values.description, taskForm.values.title]);
+
+    const canAutoAssignEdit = useMemo(() => {
+        const title = editTaskForm.values.title.trim();
+        const category = editTaskForm.values.categoryCode.trim();
+        const description = getRichTextPlain(editTaskForm.values.description).trim();
+        return Boolean(title && category && description);
+    }, [
+        editTaskForm.values.categoryCode,
+        editTaskForm.values.description,
+        editTaskForm.values.title,
+        getRichTextPlain,
+    ]);
+
+    const handleAutoAssign = useCallback(
+        async (target: AiFormTarget) => {
+            if (!canUseAi) {
+                setAiAssignError("Brak uprawnien do uzycia AI.");
+                return;
+            }
+            const form = target === "edit" ? editTaskForm : taskForm;
+            const title = form.values.title.trim();
+            const categoryCode = form.values.categoryCode.trim().toUpperCase();
+            const descriptionPlain = getRichTextPlain(form.values.description).trim();
+            if (!title || !categoryCode || !descriptionPlain) {
+                setAiAssignError("Wypelnij tytul, kategorie i opis.");
+                return;
+            }
+            setAiAssignError(null);
+            setAiAssignLoading(true);
+            try {
+                const response = await fetch(`/api/project/${project.id}/tasks/assign`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title,
+                        description: form.values.description,
+                        categoryCode,
+                        acceptanceCriteria: form.values.acceptanceCriteria,
+                    }),
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    setAiAssignError(payload?.message || "Nie udalo sie dobrac osoby.");
+                    return;
+                }
+                if (payload?.memberId) {
+                    form.setFieldValue("assignedMemberId", payload.memberId);
+                    form.setFieldTouched("assignedMemberId", true, false);
+                } else {
+                    setAiAssignError("Nie udalo sie dobrac osoby.");
+                }
+            } catch (err) {
+                const message = err instanceof Error ? err.message : "Nie udalo sie dobrac osoby.";
+                setAiAssignError(message);
+            } finally {
+                setAiAssignLoading(false);
+            }
+        },
+        [canUseAi, editTaskForm, getRichTextPlain, project.id, taskForm],
+    );
+
     const selectedCreateCategory = useMemo(
         () => categories.find((category) => category.code === taskForm.values.categoryCode) ?? null,
         [categories, taskForm.values.categoryCode],
@@ -974,6 +1132,14 @@ export default function ProjectBacklog() {
     const selectedEditCategory = useMemo(
         () => categories.find((category) => category.code === editTaskForm.values.categoryCode) ?? null,
         [categories, editTaskForm.values.categoryCode],
+    );
+    const selectedFilterCategory = useMemo(
+        () => categories.find((category) => category.id === categoryFilter) ?? null,
+        [categories, categoryFilter],
+    );
+    const selectedFilterAssignee = useMemo(
+        () => members.find((member) => member.id === assigneeFilter) ?? null,
+        [assigneeFilter, members],
     );
 
     const handleDeleteCategory = useCallback(
@@ -1020,6 +1186,29 @@ export default function ProjectBacklog() {
         });
     }, [tasks]);
 
+    const filteredTasks = useMemo(() => {
+        const query = issueQuery.trim().toUpperCase();
+        return orderedTasks.filter((task) => {
+            if (categoryFilter !== "all" && task.category?.id !== categoryFilter) return false;
+            if (statusFilter !== "all" && task.status !== statusFilter) return false;
+            if (priorityFilter !== "all" && task.priority !== priorityFilter) return false;
+            if (assigneeFilter !== "all" && task.assignedMember?.id !== assigneeFilter) return false;
+            if (query) {
+                const issueId = getIssueId(task).toUpperCase();
+                if (!issueId.includes(query)) return false;
+            }
+            return true;
+        });
+    }, [
+        assigneeFilter,
+        categoryFilter,
+        getIssueId,
+        issueQuery,
+        orderedTasks,
+        priorityFilter,
+        statusFilter,
+    ]);
+
     const tasksBySprintId = useMemo(() => {
         const map = new Map<string, ProjectTask[]>();
         orderedTasks.forEach((task) => {
@@ -1049,9 +1238,31 @@ export default function ProjectBacklog() {
         { key: "categories" as const, label: "Kategorie", icon: Tags },
         { key: "sprints" as const, label: "Sprinty", icon: Activity },
     ];
+    const statusFilterLabel = statusFilter === "all" ? "Wszystkie" : statusConfig[statusFilter].label;
+    const priorityFilterLabel = priorityFilter === "all" ? "Wszystkie" : priorityConfig[priorityFilter].label;
+    const assigneeFilterLabel =
+        assigneeFilter === "all" ? "Wszyscy" : selectedFilterAssignee ? getMemberLabel(selectedFilterAssignee) : "Wszyscy";
+    const statusFilterDot = statusFilter === "all" ? "bg-[#c3b5a5]" : statusConfig[statusFilter].dot;
+    const priorityFilterDot = priorityFilter === "all" ? "bg-[#c3b5a5]" : priorityConfig[priorityFilter].dot;
+
 
     return (
         <div className="space-y-4">
+
+            <BacklogAiModal
+                open={showAiModal}
+                target={aiTarget}
+                prompt={aiPrompt}
+                error={aiError}
+                loading={aiLoading}
+                onClose={() => {
+                    setShowAiModal(false);
+                    setAiError(null);
+                }}
+                onPromptChange={setAiPrompt}
+                onSubmit={handleGenerateAiContent}
+            />
+
             <div className="flex flex-wrap items-center gap-2 border-b border-[#e5ddd1] pb-2">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
@@ -1155,10 +1366,218 @@ export default function ProjectBacklog() {
 
                 {activeTab === "tasks" ? (
                     tasksView === "list" ? (
-                        <div className="mt-6">
+                        <div className="mt-6 space-y-4">
+                            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#eadfd3] bg-[#fbf7f1] px-4 py-3 text-sm text-[#5b5044]">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a7762]">
+                                        Issue ID
+                                    </span>
+                                    <input
+                                        value={issueQuery}
+                                        onChange={(event) => setIssueQuery(event.target.value)}
+                                        placeholder="np. CAT-12"
+                                        className="w-40 rounded-lg border border-[#d7c8b7] bg-white px-2 py-1 text-xs outline-none focus:border-[#2a241f]"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a7762]">
+                                        Kategoria
+                                    </span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="flex w-40 items-center justify-between gap-2 rounded-lg border border-[#d7c8b7] bg-white px-2 py-1 text-xs shadow-sm outline-none transition focus:border-[#2a241f]"
+                                            >
+                                                {selectedFilterCategory ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <span
+                                                            className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    selectedFilterCategory.color || defaultCategoryColor,
+                                                            }}
+                                                        />
+                                                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
+                                                            {selectedFilterCategory.code}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-[#2a241f]">
+                                                            {selectedFilterCategory.name}
+                                                        </span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs font-semibold text-[#6f6255]">Wszystkie</span>
+                                                )}
+                                                <ChevronDown className="h-3.5 w-3.5 text-[#8a7762]" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
+                                            <DropdownMenuItem
+                                                onSelect={() => setCategoryFilter("all")}
+                                                className="cursor-pointer rounded-md px-2 py-2 text-xs font-semibold text-[#2a241f] focus:bg-[#f6efe8]"
+                                            >
+                                                Wszystkie
+                                            </DropdownMenuItem>
+                                            {categories.map((category) => (
+                                                <DropdownMenuItem
+                                                    key={category.id}
+                                                    onSelect={() => setCategoryFilter(category.id)}
+                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs text-[#2a241f] focus:bg-[#f6efe8]"
+                                                >
+                                                    <span
+                                                        className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
+                                                        style={{
+                                                            backgroundColor: category.color || defaultCategoryColor,
+                                                        }}
+                                                    />
+                                                    <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
+                                                        {category.code}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-[#2a241f]">
+                                                        {category.name}
+                                                    </span>
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a7762]">
+                                        Status
+                                    </span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="flex w-40 items-center justify-between gap-2 rounded-lg border border-[#d7c8b7] bg-white px-2 py-1 text-xs shadow-sm outline-none transition focus:border-[#2a241f]"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <span className={`h-2.5 w-2.5 rounded-full ${statusFilterDot}`} />
+                                                    <span className="text-xs font-semibold text-[#2a241f]">{statusFilterLabel}</span>
+                                                </span>
+                                                <ChevronDown className="h-3.5 w-3.5 text-[#8a7762]" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
+                                            <DropdownMenuItem
+                                                onSelect={() => setStatusFilter("all")}
+                                                className="cursor-pointer rounded-md px-2 py-2 text-xs font-semibold text-[#2a241f] focus:bg-[#f6efe8]"
+                                            >
+                                                Wszystkie
+                                            </DropdownMenuItem>
+                                            {(Object.keys(statusConfig) as TaskStatus[]).map((status) => (
+                                                <DropdownMenuItem
+                                                    key={status}
+                                                    onSelect={() => setStatusFilter(status)}
+                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs text-[#2a241f] focus:bg-[#f6efe8]"
+                                                >
+                                                    <span className={`h-2.5 w-2.5 rounded-full ${statusConfig[status].dot}`} />
+                                                    {statusConfig[status].label}
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a7762]">
+                                        Priorytet
+                                    </span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="flex w-40 items-center justify-between gap-2 rounded-lg border border-[#d7c8b7] bg-white px-2 py-1 text-xs shadow-sm outline-none transition focus:border-[#2a241f]"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <span className={`h-2.5 w-2.5 rounded-full ${priorityFilterDot}`} />
+                                                    <span className="text-xs font-semibold text-[#2a241f]">{priorityFilterLabel}</span>
+                                                </span>
+                                                <ChevronDown className="h-3.5 w-3.5 text-[#8a7762]" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
+                                            <DropdownMenuItem
+                                                onSelect={() => setPriorityFilter("all")}
+                                                className="cursor-pointer rounded-md px-2 py-2 text-xs font-semibold text-[#2a241f] focus:bg-[#f6efe8]"
+                                            >
+                                                Wszystkie
+                                            </DropdownMenuItem>
+                                            {(Object.keys(priorityConfig) as TaskPriority[]).map((priority) => (
+                                                <DropdownMenuItem
+                                                    key={priority}
+                                                    onSelect={() => setPriorityFilter(priority)}
+                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs text-[#2a241f] focus:bg-[#f6efe8]"
+                                                >
+                                                    <span className={`h-2.5 w-2.5 rounded-full ${priorityConfig[priority].dot}`} />
+                                                    {priorityConfig[priority].label}
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a7762]">
+                                        Uzytkownik
+                                    </span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="flex w-40 items-center justify-between gap-2 rounded-lg border border-[#d7c8b7] bg-white px-2 py-1 text-xs shadow-sm outline-none transition focus:border-[#2a241f]"
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    {selectedFilterAssignee?.user ? (
+                                                        <Avatar className="h-5 w-5 border border-[#eadfd3] bg-white">
+                                                            {selectedFilterAssignee.user.image ? (
+                                                                <AvatarImage
+                                                                    src={selectedFilterAssignee.user.image}
+                                                                    alt={selectedFilterAssignee.user.name || selectedFilterAssignee.user.email || "user"}
+                                                                />
+                                                            ) : null}
+                                                            <AvatarFallback className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#6f6255]">
+                                                                {getInitials(selectedFilterAssignee.user.name || selectedFilterAssignee.user.email)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                    ) : null}
+                                                    <span className="text-xs font-semibold text-[#2a241f]">{assigneeFilterLabel}</span>
+                                                </span>
+                                                <ChevronDown className="h-3.5 w-3.5 text-[#8a7762]" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
+                                            <DropdownMenuItem
+                                                onSelect={() => setAssigneeFilter("all")}
+                                                className="cursor-pointer rounded-md px-2 py-2 text-xs font-semibold text-[#2a241f] focus:bg-[#f6efe8]"
+                                            >
+                                                Wszyscy
+                                            </DropdownMenuItem>
+                                            {members.map((member) => (
+                                                <DropdownMenuItem
+                                                    key={member.id}
+                                                    onSelect={() => setAssigneeFilter(member.id)}
+                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-xs text-[#2a241f] focus:bg-[#f6efe8]"
+                                                >
+                                                    <Avatar className="h-5 w-5 border border-[#eadfd3] bg-white">
+                                                        {member.user?.image ? (
+                                                            <AvatarImage
+                                                                src={member.user.image}
+                                                                alt={member.user.name || member.user.email || "user"}
+                                                            />
+                                                        ) : null}
+                                                        <AvatarFallback className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#6f6255]">
+                                                            {getInitials(member.user?.name || member.user?.email)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    {getMemberLabel(member)}
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </div>
                             {loading ? (
                                 <p className="text-sm text-[#6f6255]">Ładuję zadania...</p>
-                            ) : orderedTasks.length === 0 ? (
+                            ) : filteredTasks.length === 0 ? (
                                 <div className="rounded-xl border border-dashed border-[#eadfd3] bg-white px-3 py-2 text-sm text-[#6f6255]">
                                     Brak zadań w backlogu.
                                 </div>
@@ -1175,7 +1594,9 @@ export default function ProjectBacklog() {
 
                                             <th className="px-4 py-3 text-left font-semibold">Tytuł</th>
 
-                                            <th className="w-36 px-4 py-3 text-left font-semibold">Status</th>
+                                            <th className="w-44 px-4 py-3 text-left font-semibold">Status</th>
+
+                                            <th className="w-32 px-4 py-3 text-left font-semibold">Priorytet</th>
 
                                             <th className="w-48 px-4 py-3 text-left font-semibold">Przypisany</th>
 
@@ -1185,9 +1606,9 @@ export default function ProjectBacklog() {
 
                                         <tbody>
 
-                                        {orderedTasks.map((task, index) => {
+                                        {filteredTasks.map((task, index) => {
                                             const isExpanded = expandedTaskId === task.id;
-                                            const isLast = index === orderedTasks.length - 1;
+                                            const isLast = index === filteredTasks.length - 1;
                                             const categoryColor = task.category?.color || defaultCategoryColor;
                                             const badgeBg =
                                                 task.category && hexColorRegex.test(categoryColor) ? `${categoryColor}1a` : "transparent";
@@ -1237,8 +1658,15 @@ export default function ProjectBacklog() {
                               </span>
                                                         </td>
                                                         <td className="px-4 py-3">
+                              <span
+                                  className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${priorityConfig[task.priority].badge}`}
+                              >
+                                {priorityConfig[task.priority].label}
+                              </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
                                                             {task.assignedMember?.user ? (
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex items-center">
                                                                     <Avatar className="h-7 w-7 border border-[#eadfd3] bg-white">
                                                                         {task.assignedMember.user.image ? (
                                                                             <AvatarImage
@@ -1250,9 +1678,6 @@ export default function ProjectBacklog() {
                                                                             {getInitials(task.assignedMember.user.name || task.assignedMember.user.email)}
                                                                         </AvatarFallback>
                                                                     </Avatar>
-                                                                    <span className="text-sm font-semibold text-[#2a241f]">
-                                    {task.assignedMember.user.name || task.assignedMember.user.email}
-                                  </span>
                                                                 </div>
                                                             ) : (
                                                                 <span className="rounded-full border border-dashed border-[#eadfd3] px-2 py-1 text-[11px] uppercase tracking-[0.18em] text-[#8a7762]">
@@ -1262,7 +1687,7 @@ export default function ProjectBacklog() {
                                                         </td>
                                                     </motion.tr>
                                                     <tr className={isExpanded ? "" : "border-t-0"}>
-                                                        <td colSpan={4} className="bg-[#fcf8f2]/90 px-0 text-sm text-[#6f6255]">
+                                                        <td colSpan={5} className="bg-[#fcf8f2]/90 px-0 text-sm text-[#6f6255]">
                                                             <motion.div
                                                                 className="overflow-hidden border-t border-[#eadfd3] px-4"
                                                                 initial={false}
@@ -1294,6 +1719,14 @@ export default function ProjectBacklog() {
                                         {statusConfig[task.status].description}
                                       </span>
                                                                         </div>
+                                                                        <div className="flex flex-col gap-1">
+                                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
+                                        Priorytet
+                                      </span>
+                                      <span className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${priorityConfig[task.priority].badge}`}>
+                                        {priorityConfig[task.priority].label}
+                                      </span>
+                                    </div>
                                                                         <div className="flex flex-col gap-1">
                                       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
                                         Przypisany
@@ -2007,982 +2440,62 @@ export default function ProjectBacklog() {
                 </div>
             ) : null}
 
-            {showModal ? (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                    onClick={() => setShowModal(false)}
-                >
-                    <div
-                        className="w-full max-w-xl rounded-2xl border border-[#eadfd3] bg-white p-6 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.45)]"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8a7762]">Nowe zadanie</p>
-                                <h2 className="text-xl font-semibold text-[#1f1b16]">Dodaj do backlogu</h2>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowModal(false)}
-                                className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-sm text-[#5b5044] transition hover:border-[#2a241f] cursor-pointer"
-                            >
-                                Zamknij
-                            </button>
-                        </div>
-                        {createError ? (
-                            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-                                {createError}
-                            </div>
-                        ) : null}
+            <BacklogTaskModal
+                mode="create"
+                open={showModal}
+                error={createError}
+                categories={categories}
+                members={members}
+                sprints={sprints}
+                selectedCategory={selectedCreateCategory}
+                defaultCategoryColor={defaultCategoryColor}
+                canManageTasks={canManageTasks}
+                taskId={null}
+                canMessageTasks={canMessageTasks}
+                canUseAi={canUseAi}
+                onAiDescriptionClick={() => openAiModal("description", "create")}
+                onAiCriteriaClick={() => openAiModal("criteria", "create")}
+                showAiAssign={canAutoAssignCreate}
+                aiAssignLoading={aiAssignLoading}
+                aiAssignError={aiAssignError}
+                onAiAssign={() => handleAutoAssign("create")}
+                onClose={() => {
+                    setShowModal(false);
+                    setCreateError(null);
+                    setAiAssignError(null);
+                    taskForm.resetForm();
+                }}
+                formik={taskForm}
+            />
 
-                        <form className="mt-4 space-y-3" onSubmit={taskForm.handleSubmit}>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                    <Tags className="h-3.5 w-3.5" />
-                  </span>
-                                    Tytuł *
-                                </label>
-                                <input
-                                    name="title"
-                                    value={taskForm.values.title}
-                                    onChange={taskForm.handleChange}
-                                    onBlur={taskForm.handleBlur}
-                                    placeholder="Np. Przygotować plan wdrożenia"
-                                    className="w-full rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                                />
-                                {taskForm.touched.title && taskForm.errors.title ? (
-                                    <p className="text-xs text-rose-700">{taskForm.errors.title}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                    <Tags className="h-3.5 w-3.5" />
-                  </span>
-                                    Kategoria *
-                                </label>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button
-                                            type="button"
-                                            disabled={categories.length === 0}
-                                            className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10 disabled:cursor-not-allowed disabled:bg-[#f4efe8]"
-                                        >
-                                            {selectedCreateCategory ? (
-                                                <span className="flex items-center gap-2">
-                          <span
-                              className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
-                              style={{ backgroundColor: selectedCreateCategory.color || defaultCategoryColor }}
-                          />
-                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
-                            {selectedCreateCategory.code}
-                          </span>
-                          <span className="text-sm font-semibold text-[#2a241f]">
-                            {selectedCreateCategory.name}
-                          </span>
-                        </span>
-                                            ) : (
-                                                <span className="text-[#8a7762]">
-                          {categories.length === 0 ? "Brak kategorii" : "Wybierz kategorię"}
-                        </span>
-                                            )}
-                                            <ChevronDown className="h-4 w-4 text-[#8a7762]" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
-                                        {categories.length === 0 ? (
-                                            <div className="px-2 py-2 text-sm text-[#8a7762]">Brak dostępnych kategorii.</div>
-                                        ) : (
-                                            categories.map((category) => (
-                                                <DropdownMenuItem
-                                                    key={category.id}
-                                                    onSelect={() => {
-                                                        taskForm.setFieldValue("categoryCode", category.code);
-                                                        taskForm.setFieldTouched("categoryCode", true, false);
-                                                    }}
-                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-[#2a241f] focus:bg-[#f6efe8]"
-                                                >
-                          <span
-                              className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
-                              style={{ backgroundColor: category.color || defaultCategoryColor }}
-                          />
-                                                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
-                            {category.code}
-                          </span>
-                                                    <span className="text-sm font-semibold text-[#2a241f]">{category.name}</span>
-                                                </DropdownMenuItem>
-                                            ))
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                {taskForm.touched.categoryCode && taskForm.errors.categoryCode ? (
-                                    <p className="text-xs text-rose-700">{taskForm.errors.categoryCode}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center justify-between gap-3">
-                                    <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                    <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                      <FileText className="h-3.5 w-3.5" />
-                    </span>
-                                        Opis
-                                    </label>
-                                    {canUseAi ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAiError(null);
-                                                setAiPrompt(taskForm.values.title || "");
-                                                setShowAiModal(true);
-                                            }}
-                                            className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2a241f] transition hover:border-[#2a241f]"
-                                        >
-                                            AI utwórz opis
-                                        </button>
-                                    ) : null}
-                                </div>
-                                {showAiModal ? (
-                                    <div
-                                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                                        onClick={() => {
-                                            setShowAiModal(false);
-                                            setAiError(null);
-                                        }}
-                                    >
-                                        <div
-                                            className="w-full max-w-lg space-y-4 rounded-2xl border border-[#eadfd3] bg-white p-5 shadow-[0_24px_60px_-35px_rgba(30,20,10,0.6)]"
-                                            onClick={(event) => event.stopPropagation()}
-                                        >
-                                            <div>
-                                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8a7762]">
-                                                    AI opis zadania
-                                                </p>
-                                                <h4 className="text-lg font-semibold text-[#1f1b16]">
-                                                    Utwórz opis zadania
-                                                </h4>
-                                            </div>
-                                            <textarea
-                                                value={aiPrompt}
-                                                onChange={(event) => setAiPrompt(event.target.value)}
-                                                rows={4}
-                                                placeholder="Opisz, co ma zawierać opis zadania..."
-                                                className="w-full resize-none rounded-xl border border-[#d7c8b7] bg-[#fcfaf7] px-3 py-2 text-sm text-[#2a241f] outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                                            />
-                                            {aiError ? <p className="text-xs text-rose-700">{aiError}</p> : null}
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setShowAiModal(false);
-                                                        setAiError(null);
-                                                    }}
-                                                    className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-xs font-semibold text-[#6f6255] transition hover:border-[#2a241f]"
-                                                >
-                                                    Anuluj
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={handleGenerateDescription}
-                                                    disabled={aiLoading}
-                                                    className="rounded-full bg-[#2a241f] px-3 py-1 text-xs font-semibold text-[#f6efe8] shadow-sm transition hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:bg-[#c3b5a5]"
-                                                >
-                                                    {aiLoading ? "Generuję..." : "Generuj"}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : null}
-                                <ReactQuill
-                                    theme="snow"
-                                    value={taskForm.values.description}
-                                    onChange={(value) => taskForm.setFieldValue("description", value)}
-                                    onBlur={() => taskForm.setFieldTouched("description", true, false)}
-                                    modules={quillModules}
-                                    formats={quillFormats}
-                                    placeholder="Krótki opis zadania"
-                                    className="ipms-quill"
-                                />
-                                {taskForm.touched.description && taskForm.errors.description ? (
-                                    <p className="text-xs text-rose-700">{taskForm.errors.description}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                                    Wytyczne oddania
-                                </label>
-                                <textarea
-                                    name="deliveryGuidelines"
-                                    value={taskForm.values.deliveryGuidelines}
-                                    onChange={taskForm.handleChange}
-                                    onBlur={taskForm.handleBlur}
-                                    rows={3}
-                                    placeholder="Np. format plików, kryteria akceptacji"
-                                    className="w-full rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                                />
-                                {taskForm.touched.deliveryGuidelines && taskForm.errors.deliveryGuidelines ? (
-                                    <p className="text-xs text-rose-700">{taskForm.errors.deliveryGuidelines}</p>
-                                ) : null}
-                            </div>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowModal(false);
-                                        setCreateError(null);
-                                        taskForm.resetForm();
-                                    }}
-                                    className="rounded-full border border-[#eadfd3] bg-white px-4 py-2 text-sm font-semibold text-[#5b5044] shadow-sm transition hover:border-[#2a241f] cursor-pointer"
-                                >
-                                    Anuluj
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={taskForm.isSubmitting || !canManageTasks}
-                                    className="rounded-full bg-[#2a241f] px-4 py-2 text-sm font-semibold text-[#f6efe8] shadow-[0_14px_35px_-18px_rgba(30,20,10,0.55)] transition hover:-translate-y-[1px] hover:shadow-[0_16px_40px_-18px_rgba(30,20,10,0.55)] disabled:cursor-not-allowed disabled:bg-[#c3b5a5] cursor-pointer"
-                                >
-                                    {taskForm.isSubmitting ? "Dodaję..." : "Dodaj zadanie"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            ) : null}
-
-            {showEditModal ? (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                    onClick={() => setShowEditModal(false)}
-                >
-                    <div
-                        className="w-full max-w-xl rounded-2xl border border-[#eadfd3] bg-white p-6 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.45)]"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8a7762]">Edycja zadania</p>
-                                <h2 className="text-xl font-semibold text-[#1f1b16]">Zmień dane zadania</h2>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowEditModal(false)}
-                                className="rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-sm text-[#5b5044] transition hover:border-[#2a241f] cursor-pointer"
-                            >
-                                Zamknij
-                            </button>
-                        </div>
-
-                        {editError ? (
-                            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-                                {editError}
-                            </div>
-                        ) : null}
-
-                        <form className="mt-4 space-y-3" onSubmit={editTaskForm.handleSubmit}>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                    <Tags className="h-3.5 w-3.5" />
-                  </span>
-                                    Tytuł *
-                                </label>
-                                <input
-                                    name="title"
-                                    value={editTaskForm.values.title}
-                                    onChange={editTaskForm.handleChange}
-                                    onBlur={editTaskForm.handleBlur}
-                                    placeholder="Np. Przygotować plan wdrożenia"
-                                    className="w-full rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                                />
-                                {editTaskForm.touched.title && editTaskForm.errors.title ? (
-                                    <p className="text-xs text-rose-700">{editTaskForm.errors.title}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                    <Tags className="h-3.5 w-3.5" />
-                  </span>
-                                    Kategoria *
-                                </label>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button
-                                            type="button"
-                                            disabled={categories.length === 0}
-                                            className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10 disabled:cursor-not-allowed disabled:bg-[#f4efe8]"
-                                        >
-                                            {selectedEditCategory ? (
-                                                <span className="flex items-center gap-2">
-                          <span
-                              className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
-                              style={{ backgroundColor: selectedEditCategory.color || defaultCategoryColor }}
-                          />
-                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
-                            {selectedEditCategory.code}
-                          </span>
-                          <span className="text-sm font-semibold text-[#2a241f]">
-                            {selectedEditCategory.name}
-                          </span>
-                        </span>
-                                            ) : (
-                                                <span className="text-[#8a7762]">
-                          {categories.length === 0 ? "Brak kategorii" : "Wybierz kategorię"}
-                        </span>
-                                            )}
-                                            <ChevronDown className="h-4 w-4 text-[#8a7762]" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] border-[#eadfd3] bg-white p-1">
-                                        {categories.length === 0 ? (
-                                            <div className="px-2 py-2 text-sm text-[#8a7762]">Brak dostępnych kategorii.</div>
-                                        ) : (
-                                            categories.map((category) => (
-                                                <DropdownMenuItem
-                                                    key={category.id}
-                                                    onSelect={() => {
-                                                        editTaskForm.setFieldValue("categoryCode", category.code);
-                                                        editTaskForm.setFieldTouched("categoryCode", true, false);
-                                                    }}
-                                                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-[#2a241f] focus:bg-[#f6efe8]"
-                                                >
-                          <span
-                              className="h-2.5 w-2.5 rounded-full border border-[#d7c8b7]"
-                              style={{ backgroundColor: category.color || defaultCategoryColor }}
-                          />
-                                                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f6255]">
-                            {category.code}
-                          </span>
-                                                    <span className="text-sm font-semibold text-[#2a241f]">{category.name}</span>
-                                                </DropdownMenuItem>
-                                            ))
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                {editTaskForm.touched.categoryCode && editTaskForm.errors.categoryCode ? (
-                                    <p className="text-xs text-rose-700">{editTaskForm.errors.categoryCode}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  <span className="inline-flex h-6 w-6 items-center justify-center text-[#8a7762]">
-                    <FileText className="h-3.5 w-3.5" />
-                  </span>
-                                    Opis
-                                </label>
-                                <ReactQuill
-                                    theme="snow"
-                                    value={editTaskForm.values.description}
-                                    onChange={(value) => editTaskForm.setFieldValue("description", value)}
-                                    onBlur={() => editTaskForm.setFieldTouched("description", true, false)}
-                                    modules={quillModules}
-                                    formats={quillFormats}
-                                    placeholder="Krótki opis zadania"
-                                    className="ipms-quill"
-                                />
-                                {editTaskForm.touched.description && editTaskForm.errors.description ? (
-                                    <p className="text-xs text-rose-700">{editTaskForm.errors.description}</p>
-                                ) : null}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                                    Wytyczne oddania
-                                </label>
-                                <textarea
-                                    name="deliveryGuidelines"
-                                    value={editTaskForm.values.deliveryGuidelines}
-                                    onChange={editTaskForm.handleChange}
-                                    onBlur={editTaskForm.handleBlur}
-                                    rows={3}
-                                    placeholder="Np. format plików, kryteria akceptacji"
-                                    className="w-full rounded-xl border border-[#d7c8b7] bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[#2a241f] focus:ring-2 focus:ring-[#2a241f]/10"
-                                />
-                                {editTaskForm.touched.deliveryGuidelines && editTaskForm.errors.deliveryGuidelines ? (
-                                    <p className="text-xs text-rose-700">{editTaskForm.errors.deliveryGuidelines}</p>
-                                ) : null}
-                            </div>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowEditModal(false);
-                                        setEditError(null);
-                                        setEditingTask(null);
-                                        editTaskForm.resetForm();
-                                    }}
-                                    className="rounded-full border border-[#eadfd3] bg-white px-4 py-2 text-sm font-semibold text-[#5b5044] shadow-sm transition hover:border-[#2a241f] cursor-pointer"
-                                >
-                                    Anuluj
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={editTaskForm.isSubmitting || !canManageTasks}
-                                    className="rounded-full bg-[#2a241f] px-4 py-2 text-sm font-semibold text-[#f6efe8] shadow-[0_14px_35px_-18px_rgba(30,20,10,0.55)] transition hover:-translate-y-[1px] hover:shadow-[0_16px_40px_-18px_rgba(30,20,10,0.55)] disabled:cursor-not-allowed disabled:bg-[#c3b5a5] cursor-pointer"
-                                >
-                                    {editTaskForm.isSubmitting ? "Zapisuję..." : "Zapisz zmiany"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            ) : null}
-        </div>
-    );
-}
-
-type PertDiagramProps = {
-    tasks: ProjectTask[];
-    canManageTasks: boolean;
-    projectId: string;
-    onTaskUpdate: (task: ProjectTask) => void;
-    onReload: () => void;
-    loading: boolean;
-};
-
-const STATUS_COLUMNS: Record<TaskStatus, number> = {
-    TODO: 0,
-    IN_PROGRESS: 1,
-    BLOCKED: 2,
-    READY_FOR_REVIEW: 3,
-    IN_REVIEW: 4,
-    DONE: 5,
-    REJECTED: 6,
-    CANCELLED: 6,
-};
-
-const NODE_WIDTH = 260;
-const NODE_HEIGHT = 56;
-const LEFT_HANDLE_CENTER = 2;
-const RIGHT_HANDLE_CENTER = NODE_WIDTH - 18;
-
-function PertDiagram({ tasks, canManageTasks, projectId, onTaskUpdate, onReload, loading }: PertDiagramProps) {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
-    const [layout, setLayout] = useState<Record<string, { x: number; y: number }>>({});
-    const [anchors, setAnchors] = useState<Record<string, { left: number; right: number; centerY: number }>>({});
-    const [scale, setScale] = useState(1);
-    const [draggingId, setDraggingId] = useState<string | null>(null);
-    const [pointerOffset, setPointerOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-    const [dragLinkFrom, setDragLinkFrom] = useState<string | null>(null);
-    const [linkMode, setLinkMode] = useState<"outgoing" | "incoming" | null>(null);
-    const [linkPreview, setLinkPreview] = useState<{ fromId: string; toX: number; toY: number } | null>(null);
-    const [linkingError, setLinkingError] = useState<string | null>(null);
-    const [selectedEdge, setSelectedEdge] = useState<{ from: string; to: string } | null>(null);
-    const linkPreviewRef = useRef<{ fromId: string; toX: number; toY: number } | null>(null);
-    const layoutRef = useRef<Record<string, { x: number; y: number }>>({});
-    const draggingRef = useRef<string | null>(null);
-
-    useEffect(() => {
-        setLayout((prev) => {
-            const next: Record<string, { x: number; y: number }> = {};
-            let index = 0;
-            tasks.forEach((task) => {
-                if (typeof task.pertX === "number" && typeof task.pertY === "number") {
-                    next[task.id] = { x: task.pertX, y: task.pertY };
-                    return;
-                }
-                if (prev[task.id]) {
-                    next[task.id] = prev[task.id];
-                    return;
-                }
-                next[task.id] = {
-                    x: 80 + index * 280,
-                    y: 60,
-                };
-                index += 1;
-            });
-            return next;
-        });
-    }, [tasks]);
-
-    useEffect(() => {
-        layoutRef.current = layout;
-    }, [layout]);
-
-    useEffect(() => {
-        draggingRef.current = draggingId;
-    }, [draggingId]);
-
-    useEffect(() => {
-        linkPreviewRef.current = linkPreview;
-    }, [linkPreview]);
-
-    const pertSize = useMemo(() => {
-        let maxX = 900;
-        let maxY = 650;
-        tasks.forEach((task) => {
-            const pos = layout[task.id];
-            if (!pos) return;
-            maxX = Math.max(maxX, pos.x + NODE_WIDTH);
-            maxY = Math.max(maxY, pos.y + NODE_HEIGHT);
-        });
-        return {
-            width: maxX + 120,
-            height: maxY + 120,
-        };
-    }, [layout, tasks]);
-
-    const edges = useMemo(() => {
-        return tasks
-            .filter((task) => task.dependentTask?.id)
-            .map((task) => ({
-                from: task.dependentTask!.id,
-                to: task.id,
-            }))
-            .filter((edge) => layout[edge.from] && layout[edge.to]);
-    }, [layout, tasks]);
-
-    const getPointerPosition = useCallback((event: { clientX: number; clientY: number }) => {
-        if (!containerRef.current) return null;
-        const rect = containerRef.current.getBoundingClientRect();
-        return {
-            x: (event.clientX - rect.left) / scale,
-            y: (event.clientY - rect.top) / scale,
-        };
-    }, [scale]);
-
-    const updateAnchors = useCallback(() => {
-        const container = containerRef.current;
-        if (!container) return;
-        const containerRect = container.getBoundingClientRect();
-        const next: Record<string, { left: number; right: number; centerY: number }> = {};
-        tasks.forEach((task) => {
-            const node = nodeRefs.current[task.id];
-            if (!node) return;
-            const nodeRect = node.getBoundingClientRect();
-            next[task.id] = {
-                left: (nodeRect.left - containerRect.left) / scale,
-                right: (nodeRect.right - containerRect.left) / scale,
-                centerY: (nodeRect.top - containerRect.top + nodeRect.height / 2) / scale,
-            };
-        });
-        setAnchors(next);
-    }, [scale, tasks]);
-
-    const getNodeAnchor = useCallback(
-        (taskId: string) => {
-            return anchors[taskId] ?? null;
-        },
-        [anchors],
-    );
-
-    const handleZoomChange = useCallback((delta: number) => {
-        setScale((prev) => {
-            const next = Math.min(1.6, Math.max(0.6, prev + delta));
-            return Number(next.toFixed(2));
-        });
-    }, []);
-
-    useLayoutEffect(() => {
-        const frame = window.requestAnimationFrame(() => {
-            updateAnchors();
-        });
-        return () => window.cancelAnimationFrame(frame);
-    }, [layout, pertSize.height, pertSize.width, scale, tasks, updateAnchors]);
-
-    useEffect(() => {
-        const handleResize = () => updateAnchors();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, [updateAnchors]);
-
-    const handlePointerDown = useCallback(
-        (taskId: string, event: PointerEvent<HTMLDivElement>) => {
-            if (!containerRef.current) return;
-            if ((event.target as HTMLElement | null)?.closest("[data-link-handle]")) return;
-            const pointer = getPointerPosition(event);
-            if (!pointer) return;
-            const current = layout[taskId] ?? { x: 80, y: 60 };
-            setPointerOffset({
-                x: pointer.x - current.x,
-                y: pointer.y - current.y,
-            });
-            setDraggingId(taskId);
-            event.preventDefault();
-        },
-        [canManageTasks, getPointerPosition, layout],
-    );
-
-    const handlePointerMove = useCallback(
-        (event: PointerEvent<HTMLDivElement>) => {
-            const pointer = getPointerPosition(event);
-            if (linkPreview && pointer) {
-                setLinkPreview((prev) => (prev ? { ...prev, toX: pointer.x, toY: pointer.y } : prev));
-            }
-            if (!draggingId || !pointer) return;
-            const x = Math.max(12, pointer.x - pointerOffset.x);
-            const y = Math.max(12, pointer.y - pointerOffset.y);
-            setLayout((prev) => ({
-                ...prev,
-                [draggingId]: { x, y },
-            }));
-        },
-        [draggingId, getPointerPosition, linkPreview, pointerOffset.x, pointerOffset.y],
-    );
-
-    const updateDependency = useCallback(
-        async (taskId: string, dependentTaskId: string | null) => {
-            if (!canManageTasks) {
-                setLinkingError("Brak uprawnień do łączenia zadań.");
-                return;
-            }
-            setLinkingError(null);
-            try {
-                const response = await fetch(`/api/project/${projectId}/tasks`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ taskId, dependentTaskId }),
-                });
-                const payload = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    setLinkingError(payload?.message || "Nie udało się zaktualizować połączenia.");
-                    return;
-                }
-                const updated = payload?.task as ProjectTask | undefined;
-                if (updated) {
-                    onTaskUpdate(updated);
-                }
-            } catch (err) {
-                const message = err instanceof Error ? err.message : "Nie udało się zaktualizować połączenia.";
-                setLinkingError(message);
-            } finally {
-                setDragLinkFrom(null);
-                setLinkPreview(null);
-            }
-        },
-        [canManageTasks, onTaskUpdate, projectId],
-    );
-
-    const persistLayout = useCallback(
-        async (taskId: string, position: { x: number; y: number }) => {
-            if (!canManageTasks) return;
-            try {
-                const response = await fetch(`/api/project/${projectId}/tasks`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ taskId, pertX: position.x, pertY: position.y }),
-                });
-                const payload = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    return;
-                }
-                const updated = payload?.task as ProjectTask | undefined;
-                if (updated) {
-                    onTaskUpdate(updated);
-                }
-            } catch {
-                // best-effort persistence
-            }
-        },
-        [canManageTasks, onTaskUpdate, projectId],
-    );
-
-    useEffect(() => {
-        const handlePointerUp = (event: PointerEvent) => {
-            const dragId = draggingRef.current;
-            if (dragId) {
-                setDraggingId(null);
-                const position = layoutRef.current[dragId];
-                if (position) {
-                    void persistLayout(dragId, position);
-                }
-                return;
-            }
-            const preview = linkPreviewRef.current;
-            if (!preview) return;
-            const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
-            const targetId = target?.closest("[data-task-id]")?.getAttribute("data-task-id") || null;
-            if (!targetId) {
-                setLinkPreview(null);
-                setDragLinkFrom(null);
-                setLinkMode(null);
-                return;
-            }
-            if (targetId === preview.fromId) {
-                setLinkingError("Nie mozna polaczyc zadania z samym soba.");
-                setLinkPreview(null);
-                setDragLinkFrom(null);
-                setLinkMode(null);
-                return;
-            }
-            if (linkMode === "incoming") {
-                void updateDependency(preview.fromId, targetId);
-            } else {
-                void updateDependency(targetId, preview.fromId);
-            }
-            setLinkPreview(null);
-            setDragLinkFrom(null);
-            setLinkMode(null);
-        };
-        window.addEventListener("pointerup", handlePointerUp);
-        return () => window.removeEventListener("pointerup", handlePointerUp);
-    }, [linkMode, persistLayout, updateDependency]);
-
-    const handleLinkStart = useCallback(
-        (taskId: string, mode: "outgoing" | "incoming", event: PointerEvent<HTMLButtonElement>) => {
-            if (!canManageTasks) {
-                setLinkingError("Brak uprawnien do laczenia zadan.");
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            const pointer = getPointerPosition(event);
-            if (!pointer) return;
-            setLinkingError(null);
-            setDraggingId(null);
-            setDragLinkFrom(taskId);
-            setLinkMode(mode);
-            setLinkPreview({ fromId: taskId, toX: pointer.x, toY: pointer.y });
-        },
-        [canManageTasks, getPointerPosition],
-    );
-
-
-    return (
-        <div className="mt-6 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-[#f8f4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-          PERT diagram
-        </span>
-                <p className="text-sm text-[#5b5044]">
-                    Przeciągaj karty, aby je ułożyć. Aby połączyć zadania, przeciągnij od prawej krawędzi zadania do zadania docelowego.
-                </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <button
-                    type="button"
-                    onClick={() => {
-                        setLinkingError(null);
-                        setDragLinkFrom(null);
-                        setLinkPreview(null);
-                        setSelectedEdge(null);
-                        onReload();
-                    }}
-                    className="cursor-pointer rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-sm font-semibold text-[#2a241f] shadow-sm transition hover:border-[#2a241f]"
-                >
-                    Odśwież i wyczyść wybór
-                </button>
-                <div className="flex items-center gap-1 rounded-full border border-[#eadfd3] bg-white px-2 py-1 shadow-sm">
-                    <button
-                        type="button"
-                        onClick={() => handleZoomChange(-0.1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold text-[#2a241f] transition hover:bg-[#f3ede6]"
-                        aria-label="Pomniejsz diagram"
-                    >
-                        -
-                    </button>
-                    <span className="min-w-[48px] text-center text-[11px] font-semibold text-[#6f6255]">
-            {Math.round(scale * 100)}%
-          </span>
-                    <button
-                        type="button"
-                        onClick={() => handleZoomChange(0.1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full text-sm font-semibold text-[#2a241f] transition hover:bg-[#f3ede6]"
-                        aria-label="Powieksz diagram"
-                    >
-                        +
-                    </button>
-                </div>
-                {dragLinkFrom ? (
-                    <span className="rounded-full bg-[#2a241f] px-3 py-1 text-sm font-semibold text-[#f6efe8]">
-            Laczenie: {tasks.find((task) => task.id === dragLinkFrom)?.title || "zadanie"}{" "}
-                        {linkMode === "incoming" ? "(z przodu)" : "(z tylu)"}
-          </span>
-                ) : null}
-                {linkingError ? (
-                    <span className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-sm font-semibold text-rose-800">
-            {linkingError}
-          </span>
-                ) : null}
-            </div>
-
-            {loading ? (
-                <p className="text-sm text-[#6f6255]">Ładuję zadania...</p>
-            ) : tasks.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#eadfd3] bg-white px-3 py-2 text-sm text-[#6f6255]">
-                    Brak zadań do wyświetlenia na diagramie PERT.
-                </div>
-            ) : (
-                <div className="overflow-auto rounded-2xl border border-[#e6ded0] bg-gradient-to-br from-[#fdfaf5] to-[#f4ede4] shadow-[0_24px_60px_-45px_rgba(40,30,20,0.4)]">
-                    <div
-                        className="relative"
-                        style={{ width: `${pertSize.width * scale}px`, height: `${pertSize.height * scale}px` }}
-                    >
-                        <div
-                            ref={containerRef}
-                            onPointerMove={handlePointerMove}
-                            className="relative"
-                            style={{
-                                width: `${pertSize.width}px`,
-                                height: `${pertSize.height}px`,
-                                transform: `scale(${scale})`,
-                                transformOrigin: "top left",
-                                backgroundSize: "32px 32px",
-                                backgroundImage: "radial-gradient(circle, rgba(90,80,70,0.12) 1px, transparent 0)",
-                            }}
-                        >
-                            <svg className="absolute inset-0" width={pertSize.width} height={pertSize.height}>
-                                <defs>
-                                    <marker
-                                        id="arrowhead"
-                                        markerWidth="8"
-                                        markerHeight="8"
-                                        refX="9"
-                                        refY="4"
-                                        orient="auto"
-                                        markerUnits="strokeWidth"
-                                    >
-                                        <path d="M0,0 L8,4 L0,8 z" fill="#8a7762" />
-                                    </marker>
-                                    <marker
-                                        id="arrowhead-active"
-                                        markerWidth="8"
-                                        markerHeight="8"
-                                        refX="9"
-                                        refY="4"
-                                        orient="auto"
-                                        markerUnits="strokeWidth"
-                                    >
-                                        <path d="M0,0 L8,4 L0,8 z" fill="#dc2626" />
-                                    </marker>
-                                </defs>
-                                {edges.map((edge) => {
-                                    const from = layout[edge.from];
-                                    const to = layout[edge.to];
-                                    if (!from || !to) return null;
-                                    const fromAnchor = getNodeAnchor(edge.from);
-                                    const toAnchor = getNodeAnchor(edge.to);
-                                    const startX = fromAnchor?.right ?? from.x + RIGHT_HANDLE_CENTER;
-                                    const startY = fromAnchor?.centerY ?? from.y + NODE_HEIGHT / 2;
-                                    const endX = toAnchor?.left ?? to.x + LEFT_HANDLE_CENTER;
-                                    const endY = toAnchor?.centerY ?? to.y + NODE_HEIGHT / 2;
-                                    const midX = (startX + endX) / 2;
-                                    const isSelected = selectedEdge?.from === edge.from && selectedEdge?.to === edge.to;
-                                    const path = `M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`;
-                                    return (
-                                        <path
-                                            key={`${edge.from}-${edge.to}`}
-                                            d={path}
-                                            fill="none"
-                                            stroke={isSelected ? "#dc2626" : "#8a7762"}
-                                            strokeWidth={2}
-                                            markerEnd={isSelected ? "url(#arrowhead-active)" : "url(#arrowhead)"}
-                                            className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-                                            onClick={() =>
-                                                setSelectedEdge((prev) =>
-                                                    prev?.from === edge.from && prev?.to === edge.to ? null : edge,
-                                                )
-                                            }
-                                            style={{ pointerEvents: "stroke" }}
-                                        />
-                                    );
-                                })}
-                                {linkPreview && layout[linkPreview.fromId] ? (
-                                    (() => {
-                                        const from = layout[linkPreview.fromId];
-                                        if (!from) return null;
-                                        const fromAnchor = getNodeAnchor(linkPreview.fromId);
-                                        const startX =
-                                            linkMode === "incoming"
-                                                ? fromAnchor?.left ?? from.x + LEFT_HANDLE_CENTER
-                                                : fromAnchor?.right ?? from.x + RIGHT_HANDLE_CENTER;
-                                        const startY = fromAnchor?.centerY ?? from.y + NODE_HEIGHT / 2;
-                                        const endX = linkPreview.toX;
-                                        const endY = linkPreview.toY;
-                                        const midX = (startX + endX) / 2;
-                                        const path = `M ${startX} ${startY} C ${midX} ${startY} ${midX} ${endY} ${endX} ${endY}`;
-                                        return (
-                                            <path
-                                                d={path}
-                                                fill="none"
-                                                stroke="#2a241f"
-                                                strokeWidth={2}
-                                                strokeDasharray="6 6"
-                                                className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
-                                            />
-                                        );
-                                    })()
-                                ) : null}
-                            </svg>
-                            {selectedEdge ? (
-                                (() => {
-                                    const from = layout[selectedEdge.from];
-                                    const to = layout[selectedEdge.to];
-                                    if (!from || !to) return null;
-                                    const fromAnchor = getNodeAnchor(selectedEdge.from);
-                                    const toAnchor = getNodeAnchor(selectedEdge.to);
-                                    const startX = fromAnchor?.right ?? from.x + RIGHT_HANDLE_CENTER;
-                                    const startY = fromAnchor?.centerY ?? from.y + NODE_HEIGHT / 2;
-                                    const endX = toAnchor?.left ?? to.x + LEFT_HANDLE_CENTER;
-                                    const endY = toAnchor?.centerY ?? to.y + NODE_HEIGHT / 2;
-                                    const midX = (startX + endX) / 2;
-                                    const midY = (startY + endY) / 2;
-                                    return (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                void updateDependency(selectedEdge.to, null);
-                                                setSelectedEdge(null);
-                                            }}
-                                            className="absolute flex h-5 w-5 items-center justify-center rounded-full border border-[#dc2626] bg-white text-[10px] font-semibold text-[#dc2626] shadow-sm"
-                                            style={{
-                                                left: `${midX - 10}px`,
-                                                top: `${midY - 10}px`,
-                                            }}
-                                            aria-label="Usun polaczenie"
-                                        >
-                                            <span className="relative -top-[1px] text-[12px] leading-none">X</span>
-                                        </button>
-                                    );
-                                })()
-                            ) : null}
-
-                            {tasks.map((task) => {
-                                const pos = layout[task.id] ?? { x: 80, y: 60 };
-                                const isSelected = dragLinkFrom === task.id;
-                                const categoryCode = task.category?.code ? task.category.code.trim().toUpperCase() : "TASK";
-                                const issueId = `${categoryCode}-${task.taskNumber}`;
-                                return (
-                                    <div
-                                        key={task.id}
-                                        data-task-id={task.id}
-                                        style={{ left: pos.x, top: pos.y, width: NODE_WIDTH, height: NODE_HEIGHT }}
-                                        className={`absolute relative cursor-grab rounded-xl border bg-white px-2 py-1 text-sm shadow-[0_10px_24px_-20px_rgba(20,14,8,0.45)] transition ${
-                                            isSelected ? "border-[#2a241f]" : "border-[#eadfd3]"
-                                        }`}
-                                        ref={(node) => {
-                                            nodeRefs.current[task.id] = node;
-                                        }}
-                                        onPointerDown={(event) => handlePointerDown(task.id, event)}
-                                    >
-                                        <div className="flex h-full items-center justify-center text-center">
-                                            <p className="truncate text-[14px] font-semibold text-[#1f1b16]">{issueId}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            data-link-handle="left"
-                                            onPointerDown={(event) => handleLinkStart(task.id, "incoming", event)}
-                                            className="absolute -left-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-[#2a241f] bg-white text-[10px] font-semibold text-[#2a241f] shadow-sm"
-                                            aria-label="Polacz z przodu"
-                                        >
-                                            +
-                                        </button>
-                                        <button
-                                            type="button"
-                                            data-link-handle="right"
-                                            onPointerDown={(event) => handleLinkStart(task.id, "outgoing", event)}
-                                            className="absolute -right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-[#2a241f] bg-white text-[10px] font-semibold text-[#2a241f] shadow-sm"
-                                            aria-label="Polacz z tylu"
-                                        >
-                                            +
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            )}
+            <BacklogTaskModal
+                mode="edit"
+                open={showEditModal}
+                error={editError}
+                categories={categories}
+                members={members}
+                sprints={sprints}
+                selectedCategory={selectedEditCategory}
+                defaultCategoryColor={defaultCategoryColor}
+                canManageTasks={canManageTasks}
+                taskId={editingTask?.id ?? null}
+                canMessageTasks={canMessageTasks}
+                canUseAi={canUseAi}
+                onAiDescriptionClick={() => openAiModal("description", "edit")}
+                onAiCriteriaClick={() => openAiModal("criteria", "edit")}
+                showAiAssign={canAutoAssignEdit}
+                aiAssignLoading={aiAssignLoading}
+                aiAssignError={aiAssignError}
+                onAiAssign={() => handleAutoAssign("edit")}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setEditError(null);
+                    setEditingTask(null);
+                    setAiAssignError(null);
+                    editTaskForm.resetForm();
+                }}
+                formik={editTaskForm}
+            />
         </div>
     );
 }

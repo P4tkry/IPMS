@@ -20,11 +20,11 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     projectId?: string;
     prompt?: string;
-    mode?: "description" | "guidelines";
+    mode?: "description" | "criteria";
   };
   const projectId = body.projectId?.trim() || "";
   const prompt = body.prompt?.trim() || "";
-  const mode = body.mode === "guidelines" ? "guidelines" : "description";
+  const mode = body.mode === "criteria" ? "criteria" : "description";
 
   if (!projectId) {
     return Response.json({ message: "Brak projektu." }, { status: 400 });
@@ -63,8 +63,8 @@ export async function POST(request: Request) {
 
   try {
     const system =
-      mode === "guidelines"
-        ? "Utwórz zwięzłe wytyczne oddania zadania po polsku. Maksymalnie 5 krótkich zdań, bez nagłówków i list. Zwróć tylko wytyczne."
+      mode === "criteria"
+        ? "Utwórz zwięzłe kryteria akceptacji zadania po polsku. Maksymalnie 5 krótkich zdań, bez nagłówków i list. Zwróć tylko kryteria."
         : "Utwórz krótki opis zadania po polsku na podstawie wskazówek. 2-5 zdań, bez nagłówków i list. Zwróć tylko opis.";
 
     const result = await generateText({

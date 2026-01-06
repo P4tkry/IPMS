@@ -8,13 +8,18 @@ const taskSelect = {
   id: true,
   title: true,
   description: true,
-  deliveryGuidelines: true,
+  userStory: true,
+  acceptanceCriteria: true,
   taskNumber: true,
   status: true,
   deadline: true,
   pertX: true,
   pertY: true,
   sprintId: true,
+  priority: true,
+  completionDescription: true,
+  completionLinks: true,
+  completionFiles: true,
   createdAt: true,
   updatedAt: true,
   category: {
@@ -27,6 +32,19 @@ const taskSelect = {
     },
   },
   assignedMember: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+    },
+  },
+  reviewMember: {
     select: {
       id: true,
       user: {
@@ -106,12 +124,16 @@ export async function POST(
   const body = (await request.json()) as {
     title?: string;
     description?: string;
-    deliveryGuidelines?: string | null;
+    userStory?: string | null;
+    acceptanceCriteria?: string | null;
     status?: string;
+    priority?: string;
     deadline?: string | null;
     assignedMemberId?: string | null;
+    reviewMemberId?: string | null;
     dependentTaskId?: string | null;
     categoryCode?: string | null;
+    sprintId?: string | null;
   };
 
   if (Object.prototype.hasOwnProperty.call(body, "taskNumber")) {
@@ -120,9 +142,11 @@ export async function POST(
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const description = typeof body.description === "string" ? body.description.trim() : undefined;
-  const deliveryGuidelines =
-    typeof body.deliveryGuidelines === "string" && body.deliveryGuidelines.trim()
-      ? body.deliveryGuidelines.trim()
+  const userStory =
+    typeof body.userStory === "string" && body.userStory.trim() ? body.userStory.trim() : undefined;
+  const acceptanceCriteria =
+    typeof body.acceptanceCriteria === "string" && body.acceptanceCriteria.trim()
+      ? body.acceptanceCriteria.trim()
       : undefined;
   const status = (typeof body.status === "string" ? body.status.trim().toUpperCase() : "TODO") as
     | "TODO"
@@ -133,6 +157,11 @@ export async function POST(
     | "DONE"
     | "REJECTED"
     | "CANCELLED";
+  const priority = (typeof body.priority === "string" ? body.priority.trim().toUpperCase() : "MEDIUM") as
+    | "LOW"
+    | "MEDIUM"
+    | "HIGH"
+    | "URGENT";
   const deadline =
     typeof body.deadline === "string" && body.deadline
       ? new Date(body.deadline)
@@ -141,10 +170,16 @@ export async function POST(
     typeof body.assignedMemberId === "string" && body.assignedMemberId.trim()
       ? body.assignedMemberId.trim()
       : undefined;
+  const reviewMemberId =
+    typeof body.reviewMemberId === "string" && body.reviewMemberId.trim()
+      ? body.reviewMemberId.trim()
+      : undefined;
   const dependentTaskId =
     typeof body.dependentTaskId === "string" && body.dependentTaskId.trim()
       ? body.dependentTaskId.trim()
       : undefined;
+  const sprintId =
+    typeof body.sprintId === "string" && body.sprintId.trim() ? body.sprintId.trim() : undefined;
   const categoryCode =
     typeof body.categoryCode === "string" && body.categoryCode.trim()
       ? body.categoryCode.trim().toUpperCase()
@@ -171,6 +206,10 @@ export async function POST(
     ].includes(status)
   ) {
     return Response.json({ message: "Invalid status." }, { status: 400 });
+  }
+
+  if (!["LOW", "MEDIUM", "HIGH", "URGENT"].includes(priority)) {
+    return Response.json({ message: "Invalid priority." }, { status: 400 });
   }
 
   if (deadline && Number.isNaN(deadline.getTime())) {
@@ -213,6 +252,17 @@ export async function POST(
     }
   }
 
+  let reviewMember;
+  if (reviewMemberId) {
+    reviewMember = await prisma.projectMember.findUnique({
+      where: { id: reviewMemberId },
+      select: { id: true, projectId: true },
+    });
+    if (!reviewMember || reviewMember.projectId !== projectId) {
+      return Response.json({ message: "Invalid review member." }, { status: 400 });
+    }
+  }
+
   let dependency;
   if (dependentTaskId) {
     dependency = await prisma.task.findUnique({
@@ -232,6 +282,17 @@ export async function POST(
     return Response.json({ message: "Invalid category." }, { status: 400 });
   }
 
+  let sprint;
+  if (sprintId) {
+    sprint = await prisma.sprint.findUnique({
+      where: { id: sprintId },
+      select: { id: true, projectId: true },
+    });
+    if (!sprint || sprint.projectId !== projectId) {
+      return Response.json({ message: "Invalid sprint." }, { status: 400 });
+    }
+  }
+
   const task = await prisma.$transaction(async (tx) => {
     const maxResult = await tx.task.aggregate({
       where: { categoryId: category.id },
@@ -243,14 +304,18 @@ export async function POST(
       data: {
         title,
         description,
-        deliveryGuidelines,
+        userStory,
+        acceptanceCriteria,
         taskNumber: nextTaskNumber,
         status,
+        priority,
         deadline: deadline ?? null,
         projectId,
         assignedMemberId: assignedMemberId ?? null,
+        reviewMemberId: reviewMemberId ?? null,
         dependentTaskId: dependentTaskId ?? null,
         categoryId: category.id,
+        sprintId: sprint?.id ?? null,
       },
       select: taskSelect,
     });
@@ -273,12 +338,18 @@ export async function PATCH(
     taskId?: string;
     title?: string;
     description?: string | null;
-    deliveryGuidelines?: string | null;
+    userStory?: string | null;
+    acceptanceCriteria?: string | null;
     status?: string;
+    priority?: string;
+    completionDescription?: string | null;
+    completionLinks?: string[] | null;
+    completionFiles?: string[] | null;
     deadline?: string | null;
     pertX?: number | null;
     pertY?: number | null;
     assignedMemberId?: string | null;
+    reviewMemberId?: string | null;
     dependentTaskId?: string | null;
     categoryCode?: string | null;
     sprintId?: string | null;
@@ -311,25 +382,41 @@ export async function PATCH(
     return Response.json({ message: "Forbidden" }, { status: 403 });
   }
 
-  const permissionSet = new Set<string>(membership.permissions ?? []);
-  const canUpdate = permissionSet.has(TASKS_CUD_PERMISSION);
-  if (!canUpdate) {
-    return Response.json({ message: "Missing permission TASKS_CUD." }, { status: 403 });
-  }
-
   const existingTask = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { id: true, projectId: true, categoryId: true },
+    select: { id: true, projectId: true, categoryId: true, assignedMemberId: true },
   });
 
   if (!existingTask || existingTask.projectId !== projectId) {
     return Response.json({ message: "Task not found." }, { status: 404 });
   }
 
+  const permissionSet = new Set<string>(membership.permissions ?? []);
+  const canUpdate = permissionSet.has(TASKS_CUD_PERMISSION);
+  const canSelfUpdate = existingTask.assignedMemberId === membership.id;
+  if (!canUpdate && !canSelfUpdate) {
+    return Response.json({ message: "Missing permission TASKS_CUD." }, { status: 403 });
+  }
+
+  if (!canUpdate) {
+    const allowedKeys = new Set([
+      "taskId",
+      "status",
+      "completionDescription",
+      "completionLinks",
+      "completionFiles",
+    ]);
+    const invalidKey = Object.keys(body).find((key) => !allowedKeys.has(key));
+    if (invalidKey) {
+      return Response.json({ message: "Forbidden." }, { status: 403 });
+    }
+  }
+
   const data: {
     title?: string;
     description?: string | null;
-    deliveryGuidelines?: string | null;
+    userStory?: string | null;
+    acceptanceCriteria?: string | null;
     status?:
       | "TODO"
       | "IN_PROGRESS"
@@ -339,6 +426,10 @@ export async function PATCH(
       | "DONE"
       | "REJECTED"
       | "CANCELLED";
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    completionDescription?: string | null;
+    completionLinks?: string[] | null;
+    completionFiles?: string[] | null;
     deadline?: Date | null;
     pertX?: number | null;
     pertY?: number | null;
@@ -362,11 +453,18 @@ export async function PATCH(
     data.description = null;
   }
 
-  if (typeof body.deliveryGuidelines === "string") {
-    const guidelines = body.deliveryGuidelines.trim();
-    data.deliveryGuidelines = guidelines ? guidelines : null;
-  } else if (body.deliveryGuidelines === null) {
-    data.deliveryGuidelines = null;
+  if (typeof body.userStory === "string") {
+    const story = body.userStory.trim();
+    data.userStory = story ? story : null;
+  } else if (body.userStory === null) {
+    data.userStory = null;
+  }
+
+  if (typeof body.acceptanceCriteria === "string") {
+    const criteria = body.acceptanceCriteria.trim();
+    data.acceptanceCriteria = criteria ? criteria : null;
+  } else if (body.acceptanceCriteria === null) {
+    data.acceptanceCriteria = null;
   }
 
   if (typeof body.status === "string") {
@@ -393,7 +491,48 @@ export async function PATCH(
     ) {
       return Response.json({ message: "Invalid status." }, { status: 400 });
     }
+    if (!canUpdate && !["IN_PROGRESS", "READY_FOR_REVIEW"].includes(status)) {
+      return Response.json({ message: "Invalid status transition." }, { status: 403 });
+    }
     data.status = status;
+  }
+
+  if (typeof body.priority === "string") {
+    const priority = body.priority.trim().toUpperCase() as "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    if (!["LOW", "MEDIUM", "HIGH", "URGENT"].includes(priority)) {
+      return Response.json({ message: "Invalid priority." }, { status: 400 });
+    }
+    data.priority = priority;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "completionDescription")) {
+    if (typeof body.completionDescription === "string") {
+      data.completionDescription = body.completionDescription.trim();
+    } else if (body.completionDescription === null) {
+      data.completionDescription = null;
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "completionLinks")) {
+    if (Array.isArray(body.completionLinks)) {
+      data.completionLinks = body.completionLinks
+        .filter((link): link is string => typeof link === "string")
+        .map((link) => link.trim())
+        .filter(Boolean);
+    } else if (body.completionLinks === null) {
+      data.completionLinks = [];
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "completionFiles")) {
+    if (Array.isArray(body.completionFiles)) {
+      data.completionFiles = body.completionFiles
+        .filter((link): link is string => typeof link === "string")
+        .map((link) => link.trim())
+        .filter(Boolean);
+    } else if (body.completionFiles === null) {
+      data.completionFiles = [];
+    }
   }
 
   if (Object.prototype.hasOwnProperty.call(body, "deadline")) {
@@ -436,6 +575,21 @@ export async function PATCH(
       data.assignedMemberId = assignedMember.id;
     } else {
       data.assignedMemberId = null;
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "reviewMemberId")) {
+    if (typeof body.reviewMemberId === "string" && body.reviewMemberId.trim()) {
+      const reviewMember = await prisma.projectMember.findUnique({
+        where: { id: body.reviewMemberId.trim() },
+        select: { id: true, projectId: true },
+      });
+      if (!reviewMember || reviewMember.projectId !== projectId) {
+        return Response.json({ message: "Invalid review member." }, { status: 400 });
+      }
+      data.reviewMemberId = reviewMember.id;
+    } else {
+      data.reviewMemberId = null;
     }
   }
 

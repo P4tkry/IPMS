@@ -14,6 +14,7 @@ import {
   PROJECT_REMOVE_PERMISSION,
   PROJECT_MEMBER_PERMISSIONS,
   PROJECT_USERS_MANAGE_PERMISSION,
+  TASK_MESSAGE_CRUD_PERMISSION,
   TASK_VIEW_PERMISSION,
   TASKS_CUD_PERMISSION,
 } from "@/lib/projects/permissions";
@@ -192,6 +193,7 @@ export default function ProjectUsers() {
       [DASHBOARD_POST_PERMISSION]: "Dashboard posts",
       [TASK_VIEW_PERMISSION]: "Tasks view",
       [TASKS_CUD_PERMISSION]: "Tasks CUD",
+      [TASK_MESSAGE_CRUD_PERMISSION]: "Task messages",
       [AI_USE_PERMISSION]: "AI use",
       [PROJECT_REMOVE_PERMISSION]: "Project remove",
       [PROJECT_EDIT_PERMISSION]: "Project edit",

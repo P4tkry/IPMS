@@ -75,6 +75,7 @@ export default function ProjectMyTasksPage() {
     load();
   }, [project?.id]);
 
+
   const dateFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat("pl-PL", {
@@ -130,11 +131,8 @@ export default function ProjectMyTasksPage() {
           <Card className="border-[#e2d6c9] bg-white/90 shadow-[0_24px_60px_-45px_rgba(60,40,20,0.35)]">
             <CardContent className="space-y-4 p-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8a7762]">
-                  {project?.name || "Projekt"}
-                </p>
                 <h2 className="text-lg font-semibold text-[#1f1b16]">
-                  Sprint {sprint.sprintNumber}: {sprint.name}
+                  Sprint-{sprint.sprintNumber}: {sprint.name}
                 </h2>
                 <p className="text-xs text-[#6f6255]">
                   {dateFormatter.format(new Date(sprint.startDate))} -{" "}
@@ -171,6 +169,14 @@ export default function ProjectMyTasksPage() {
                         {task.deadline
                           ? dateFormatter.format(new Date(task.deadline))
                           : "Brak"}
+                      </div>
+                      <div className="mt-3">
+                        <a
+                          href={`/project/${project.id}/task/${task.id}`}
+                          className="inline-flex items-center rounded-full border border-[#eadfd3] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#2a241f] transition hover:border-[#2a241f]"
+                        >
+                          Zobacz zadanie
+                        </a>
                       </div>
                     </div>
                   ))}
